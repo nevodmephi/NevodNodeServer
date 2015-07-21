@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>nevod.io</title>
+        <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
+        <link rel="stylesheet" href="/css/plumb.css">
+        <link href="/css/bootstrap.min.css" rel="stylesheet">
+    </head>
+    <body onload="initjsPlumb();main();" data-demo-id="statemachine" data-library="dom">
+
+<!-- Navbar -->
+
+        <nav class="navbar navbar-default navbar-fixed-top">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="#">
+                    eventor
+                    </a>
+                </div>
+      <ul class="nav navbar-nav">
+        <li class="active" id="btnConstructor">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('constructor')">Схема</a>
+        </li>
+        <li id="btnScreen">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('screen')">Экран</a>
+        </li>
+        <li id="btnLog">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('log')">Журнал</a>
+        </li>
+        <li id="btnSettings">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('settings')">Настройки</a>
+        </li>
+      </ul>
+                <div class="btn-group pull-right" role="group" aria-label="...">
+                    <button onclick="$('#connectedDevices').modal('show')" id="playButton" type="button" class="btn navbar-btn btn-warning"><span class="glyphicon glyphicon-cloud"></span></button>
+                    <button onclick="parseScheme()" id="playButton" type="button" class="btn navbar-btn btn-danger"><span class="glyphicon glyphicon-refresh"></span></button>
+                </div>
+            </div>
+        </nav>
+
+<div class="demo statemachine-demo" id="statemachine-demo"></div>
+
+<nav class="navbar navbar-default navbar-fixed-bottom" id="constructor-navbar">
+  <div class="container">
+    <button class="btn btn-default navbar-btn" onclick="newBlock('SRC')">DLL</button>
+    <button class="btn btn-default navbar-btn" onclick="newBlock('MOD')">Модулятор</button>
+    <button class="btn btn-default navbar-btn" onclick="newBlock('COU')">Счетчик</button>
+    <button class="btn btn-default navbar-btn" onclick="newBlock('SER')">Сервер</button>
+    <button class="btn btn-default navbar-btn" onclick="newBlock('RND')">Случ. соб.</button>
+  </div>
+</nav>
+
+<!-- Modal -->
+<div class="modal fade" id="connectionSettings" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">Настройка связи</h4>
+      </div>
+      <div class="modal-body">
+        <table>
+        <tr>
+        <td>
+            <div class="btn-group" data-toggle="buttons" id="inputsFrom">
+                <label class="btn btn-primary active">
+                <input type="radio" name="options" id="option1" autocomplete="off" checked>X</label>
+            </div>
+        </td>
+        <td>
+            <div class="btn-group" data-toggle="buttons" id="inputsTo">
+                <label class="btn btn-primary active">
+                <input type="radio" name="options" id="option1" autocomplete="off" checked>X</label>
+            </div>
+        </td>
+        </tr>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger pull-left" data-dismiss="modal" onclick="deleteConnection()">Удалить связь</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">Закрыть</button>
+        <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="setConnection()">Подтвердить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="connectedDevices" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">Облако</h4>
+      </div>
+      <div class="modal-body">
+        <table id="deviceTable" class="table table-striped">
+        <thead><tr><td>IP</td><td>Префикс</td><td>Состояние</td><td>Параметры</td><td>Схема</td></tr></thead>
+        <tbody id="clients">
+        </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" onclick="deleteDisconnected()">удалить завершенные соединения</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="oscill-container">
+<div id="oscilloscope">
+</div>
+
+<nav class="navbar navbar-default navbar-fixed-bottom">
+  <div class="container">
+    <div class="btn-group" data-toggle="buttons">
+        <label class="btn btn-default active" onclick="oscPlay = true;">
+            <input type="radio" name="options" id="option1" autocomplete="off" checked> 
+            <span class="glyphicon glyphicon-play" aria-hidden="true"></span>
+        </label>
+        <label class="btn btn-default" onclick="oscPlay = false;">
+            <input type="radio" name="options" id="option2" autocomplete="off">
+            <span class="glyphicon glyphicon-stop" aria-hidden="true"></span>
+        </label>
+    </div>
+    <button type="button" class="btn btn-default" data-toggle="button" aria-pressed="false" autocomplete="off">
+        <span class="glyphicon glyphicon-record" aria-hidden="true"></span>    
+    </button>
+    <button class="btn btn-default navbar-btn" onclick="newBlock('MOD')">Развертка</button>
+    <button class="btn btn-default navbar-btn" onclick="newBlock('COU')">Резать</button>
+    <button class="btn btn-default navbar-btn" onclick="newBlock('OSC')">Цвет</button>
+  </div>
+</nav>
+</div>
+
+<div id="log-container">
+    <table id="log-table" class="table table-hover">
+    <thead>
+    <tr class="">
+        <td>№</td>
+        <td>Код/префикс</td>
+        <td>Время</td>
+    </tr>
+    </thead>
+    <tbody id="eventLog">
+    </tbody>
+    </table>
+<nav class="navbar navbar-default navbar-fixed-bottom">
+  <div class="container">
+    <button class="btn btn-default navbar-btn">Чистить вилкой</button>
+  </div>
+</nav>
+</div>
+
+<div id="settings-container">
+
+<nav class="navbar navbar-default navbar-fixed-bottom">
+  <div class="container">
+    <button class="btn btn-success navbar-btn pull-right">Применить</button>
+  </div>
+</nav>
+</div>
+
+<!-- Include scripts -->
+
+        <!-- support lib for bezier stuff -->
+        <script src="/js/jsplumb/jsBezier-0.7.js"></script>
+        <!-- event adapter -->
+        <script src="/js/jsplumb/mottle-0.6.js"></script>
+        <!-- geometry functions -->
+        <script src="/js/jsplumb/biltong-0.2.js"></script>
+        <!-- drag -->
+        <script src="/js/jsplumb/katavorio-0.6.js"></script>
+        <!-- jsplumb util -->
+        <script src="/js/jsplumb/util.js"></script>
+        <script src="/js/jsplumb/browser-util.js"></script>
+        <!-- main jsplumb engine -->
+        <script src="/js/jsplumb/jsPlumb.js"></script>
+        <!-- base DOM adapter -->
+        <script src="/js/jsplumb/dom-adapter.js"></script>
+        <script src="/js/jsplumb/overlay-component.js"></script>
+        <!-- endpoint -->
+        <script src="/js/jsplumb/endpoint.js"></script>
+        <!-- connection -->
+        <script src="/js/jsplumb/connection.js"></script>
+        <!-- anchors -->
+        <script src="/js/jsplumb/anchors.js"></script>
+        <!-- connectors, endpoint and overlays  -->
+        <script src="/js/jsplumb/defaults.js"></script>
+        <!-- bezier connectors -->
+        <script src="/js/jsplumb/connectors-bezier.js"></script>
+        <!-- state machine connectors -->
+        <script src="/js/jsplumb/connectors-statemachine.js"></script>
+        <!-- flowchart connectors -->
+        <script src="/js/jsplumb/connectors-flowchart.js"></script>
+        <!-- SVG renderer -->
+        <script src="/js/jsplumb/renderers-svg.js"></script>
+
+        <!-- vml renderer -->
+        <script src="/js/jsplumb/renderers-vml.js"></script>
+
+        <!-- common adapter -->
+        <script src="/js/jsplumb/base-library-adapter.js"></script>
+        <!-- no library jsPlumb adapter -->
+        <script src="/js/jsplumb/dom.jsPlumb.js"></script>
+        <!--  demo code -->
+        <script src="/js/app/client.js"></script>
+        <script src="/js/jquery-2.1.4.min.js"></script>
+        <script src="/js/flot/jquery.flot.js"></script>
+        <script src="/js/bootstrap/bootstrap.min.js"></script>
+        <!-- sockets.io -->
+        <script>document.write('<script src="//'+ location.hostname + ':8889/socket.io/socket.io.js">\x3C/script>')</script>
+        <script type="text/javascript">
+            $( document ).ready(function() {
+                initOsc();
+            });
+        </script>
+    </body>
+</html>

@@ -1,0 +1,180 @@
+@import url(http://fonts.googleapis.com/css?family=Exo+2:300&subset=latin,cyrillic);
+
+body * {
+    font-family: 'Exo 2', sans-serif;
+}
+
+thead {
+    font-weight: 600;
+}
+
+.demo {
+    /* for IE10+ touch devices */
+    position: absolute;
+    width: 3000px;
+    height: 3000px;
+    touch-action:none;
+}
+
+.w {
+    position: absolute;
+    z-index: 4;
+    color: #aaa;
+    cursor: move;
+    font-size: 11px;
+    overflow: hidden;
+    background-color: #fff;
+}
+
+.w input {
+    font-size: 1.5em;
+    width: 100%;
+}
+
+body {
+   background-image: url('/img/ps_neutral.png');
+}
+
+iframe {
+    border-radius: 4px;
+}
+
+.w:hover {
+
+}
+
+.panel-default {
+    margin-bottom: 0 !important;
+}
+
+.panel-default .btn {
+    margin-right: 0.2em;
+}
+
+.aLabel._jsPlumb_hover {
+    background-color: #333;
+    color: #fff;
+}
+
+.aLabel {
+    opacity: 0.8;
+    padding: 0.3em;
+    background-color: transparent;
+    color: transparent;
+    cursor: pointer;
+}
+
+.ep {
+    cursor: pointer;
+}
+
+.connector {
+    position: absolute;
+    left: 16px;
+    top: 16px;
+}
+
+.ep:hover {
+
+}
+
+.statemachine-demo ._jsPlumb_endpoint {
+    z-index: 3;
+}
+
+#opened {
+    left: 10em;
+    top: 5em;
+}
+
+#phone1 {
+    left: 35em;
+    top: 12em;
+    width: 7em;
+}
+
+#inperson {
+    left: 12em;
+    top: 23em;
+}
+
+#phone2 {
+    left: 28em;
+    top: 24em;
+}
+
+#rejected {
+    left: 10em;
+    top: 35em;
+}
+
+.dragHover {
+    border: 2px solid orange;
+}
+
+path, ._jsPlumb_endpoint { cursor:pointer; }
+
+.modal-body table {
+    width: 100%;
+}
+
+.modal-body table tr {
+    text-align: center;
+}
+
+#oscilloscope {
+    position: fixed;
+    left: 0;
+    top: 64px;
+    right: 0;
+    bottom: 64px;
+    background-color: #eee;
+    z-index: 100;
+}
+
+#oscill-container {
+    position: fixed;
+    left: 0;
+    top: 64px;
+    right: 0;
+    bottom: 64px;
+    z-index: 101;
+    visibility: hidden;    
+}
+
+#log-container {
+    position: fixed;
+    padding-left: 1em;
+    padding-right: 1em;
+    background-color: #ffe;
+    border-top-style: dashed;
+    border-bottom-style: dashed;
+    border-color: #BBB;
+    border-width: 1px;
+    left: 0;
+    top: 64px;
+    right: 0;
+    bottom: 64px;
+    z-index: 101;
+    visibility: hidden;
+    overflow: auto;    
+}
+
+#settings-container {
+    position: fixed;
+    left: 0;
+    top: 64px;
+    right: 0;
+    bottom: 64px;
+    z-index: 101;
+    visibility: hidden;    
+}
+
+
+
+#log-container tr {
+    cursor: pointer;
+}
+
+#log-table {
+}
