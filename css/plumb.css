@@ -178,3 +178,7 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
 
 #log-table {
 }
+
+tr.log-string:hover {
+    background-color: #aaa !important;
+}

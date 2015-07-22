@@ -9,8 +9,14 @@ var curid=0;
 
 var plot;
 var oscScreen;
+var oscBuf = [];
+var oscRec = false;
 
 var oscPlay = true;
+var logPlay = true;
+
+var colors = ["#FF6600", "#330099", "#FFCC00", "#CC0000", "#339900", "#CC3333", "#996600", "#CC00FF", "#0066CC","#6600CC","#FF6699","#00CC99","#FF6666","#666699","#CCFF33","#999966"];
+var colorIt = -1;
 
 function initjsPlumb() {
     instance = jsPlumb.getInstance({
@@ -427,39 +433,60 @@ function initOsc() {
 
 function showEvent(ev,id) {
     var d = [];
-    var options = {
-    series: {
-        lines: {
-            show: true,
-            fill: true,
-            fillColor: { colors: [{ opacity: 0.7 }, { opacity: 0.1}] }
-        }
-    },
-    colors: ["#FF7070", "#0022FF"],
-    grid: {
-        hoverable: true
-    }       
-    }
     //alert(ev[14]*0x100+ev[15]);
     for(var i=0;i<(ev[14]*0x100+ev[15])*2;i+=2) {
         d.push([(ev[ev.length-(ev[14]*0x100+ev[15])*2*2+i]*0x100+ev[ev.length-(ev[14]*0x100+ev[15])*2*2+i+1])*Math.pow(10,-ev[16]), (ev[ev.length-(ev[14]*0x100+ev[15])*2+i]*0x100+ev[ev.length-(ev[14]*0x100+ev[15])*2+i+1])*Math.pow(10,-ev[17])]);
     }
     //alert(ev);
-
-    if(oscPlay==true) {
-        oscScreen = $.plot($("#oscilloscope"), [d], options);
-    }
     var time = ev[0] + "." + ev[1] + "." + ev[2] + " " + ev[3] + ":" + ev[4] + ":" + ev[5] + ":" + (ev[6]*0x100 + ev[7]*1) + ":" + (ev[8]*0x100 + ev[9]*1) + ":" + (ev[10]*0x100 + ev[11]*1);
     var prefixLength = ev[12]*0x100 + ev[13]*1;
     var prefixBuffer = ev.slice(18,18+prefixLength);
     var prefix = "";
     for(var i in prefixBuffer) prefix+=String.fromCharCode(prefixBuffer[i]);
     //alert(prefixBuffer);
-    logEvent(id,prefix,time);
+    colorIt++; if(colorIt==16) colorIt=0;
+    var options = {
+    series: {
+        lines: {
+            show: true,
+            fill: false,
+            fillColor: { colors: [{ opacity: 0.7 }, { opacity: 0.1}] }
+        }
+    },
+    colors: ["#FF6600", "#330099", "#FFCC00", "#CC0000", "#339900", "#CC3333", "#996600", "#CC00FF", "#0066CC","#6600CC","#FF6699","#00CC99","#FF6666","#666699","#CCFF33","#999966"],
+    grid: {
+        hoverable: true
+    }       
+    }
+    if(((oscRec==false) || (oscBuf.length>15))&&(oscPlay==true)) {
+        $(".log-string").each(function(i,o) {
+            o.style.color = "#000000";
+        });
+    }
+    if(oscPlay==true) {
+        oscBuf.push(d);
+        if(logPlay==true) logEvent(id,prefix,time,colors[colorIt]);
+        oscScreen = $.plot($("#oscilloscope"), oscBuf, options);
+    } else {
+        if(logPlay==true) logEvent(id,prefix,time,"#000000");
+    }
+    if((oscRec==false) || (oscBuf.length>15)) {
+        oscBuf = [];
+        colorIt=-1;
+    }
 }
 
-function logEvent(id,prefix,time) {
-    document.getElementById("eventLog").innerHTML = "<tr><td>" + id + "</td><td>" + prefix + "</td><td>" + time + "</td></tr>" + document.getElementById("eventLog").innerHTML;
+function switchOscRec() {
+    oscRec = !oscRec;
+    if(oscRec==true) {
+        $(".log-string").each(function(i,o) {
+            o.style.color = "#000000";
+        });        
+    }
+}
+
+function logEvent(id,prefix,time,color) {
+    document.getElementById("eventLog").innerHTML = "<tr class='log-string' style='color:" + color + "'><td>" + id + "</td><td>" + prefix + "</td><td>" + time + "</td></tr>" + document.getElementById("eventLog").innerHTML;
 }
 
 function getRandomArbitary(min, max)
@@ -513,4 +540,33 @@ function deleteDisconnected() {
             $(o).remove();
         }
     });
+}
+
+function clearOsc() {
+    var options = {
+    series: {
+        lines: {
+            show: true,
+            fill: false,
+            fillColor: { colors: [{ opacity: 0.7 }, { opacity: 0.1}] }
+        }
+    },
+    colors: ["#FF6600", "#330099", "#FFCC00", "#CC0000", "#339900", "#CC3333", "#996600", "#CC00FF", "#0066CC","#6600CC","#FF6699","#00CC99","#FF6666","#666699","#CCFF33","#999966"],
+    grid: {
+        hoverable: true
+    }       
+    }
+    oscScreen = $.plot($("#oscilloscope"), [[0,0]], options);
+        $(".log-string").each(function(i,o) {
+            o.style.color = "#000000";
+        });
+}
+
+function clearLog() {
+    document.getElementById("eventLog").innerHTML = "";
+}
+
+function switchLogPlay() {
+    logPlay = !logPlay;
+
 }

@@ -32,8 +32,7 @@
         </li>
       </ul>
                 <div class="btn-group pull-right" role="group" aria-label="...">
-                    <button onclick="$('#connectedDevices').modal('show')" id="playButton" type="button" class="btn navbar-btn btn-warning"><span class="glyphicon glyphicon-cloud"></span></button>
-                    <button onclick="parseScheme()" id="playButton" type="button" class="btn navbar-btn btn-danger"><span class="glyphicon glyphicon-refresh"></span></button>
+                    <button onclick="$('#connectedDevices').modal('show')" id="playButton" type="button" class="btn navbar-btn btn-default"><span class="glyphicon glyphicon-cloud"></span></button>
                 </div>
             </div>
         </nav>
@@ -123,12 +122,10 @@
             <span class="glyphicon glyphicon-stop" aria-hidden="true"></span>
         </label>
     </div>
-    <button type="button" class="btn btn-default" data-toggle="button" aria-pressed="false" autocomplete="off">
+    <button type="button" class="btn btn-default" data-toggle="button" aria-pressed="false" autocomplete="off" onclick="switchOscRec()">
         <span class="glyphicon glyphicon-record" aria-hidden="true"></span>    
     </button>
-    <button class="btn btn-default navbar-btn" onclick="newBlock('MOD')">Развертка</button>
-    <button class="btn btn-default navbar-btn" onclick="newBlock('COU')">Резать</button>
-    <button class="btn btn-default navbar-btn" onclick="newBlock('OSC')">Цвет</button>
+    <button class="btn btn-default navbar-btn" onclick="clearOsc()"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
   </div>
 </nav>
 </div>
@@ -147,7 +144,10 @@
     </table>
 <nav class="navbar navbar-default navbar-fixed-bottom">
   <div class="container">
-    <button class="btn btn-default navbar-btn">Чистить вилкой</button>
+        <button type="button" class="btn btn-default" data-toggle="button" aria-pressed="false" autocomplete="off" onclick="switchLogPlay()">
+            <span class="glyphicon glyphicon-pause" aria-hidden="true"></span>    
+        </button>
+        <button class="btn btn-default navbar-btn" onclick="clearLog()"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
   </div>
 </nav>
 </div>
