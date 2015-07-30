@@ -183,10 +183,11 @@ function newBlock(type) {
             cp = "число";
             break;
         case "SRC":
+            newAddon._type = 4; 
             hd = "Источник";
-            ap = "библиотека";
-            bp = "параметр1";
-            cp = "параметр2";
+            ap = "номер";
+            bp = "вход";
+            cp = "триггер";
             break;
         case "FIL":
             newAddon._type = 3;
