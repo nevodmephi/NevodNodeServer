@@ -63,13 +63,13 @@
         <td>
             <div class="btn-group" data-toggle="buttons" id="inputsFrom">
                 <label class="btn btn-primary active">
-                <input type="radio" name="options" id="option1" autocomplete="off" checked>X</label>
+                <input type="radio" name="options" id="option1" checked>X</label>
             </div>
         </td>
         <td>
             <div class="btn-group" data-toggle="buttons" id="inputsTo">
                 <label class="btn btn-primary active">
-                <input type="radio" name="options" id="option1" autocomplete="off" checked>X</label>
+                <input type="radio" name="options" id="option2" checked>X</label>
             </div>
         </td>
         </tr>
@@ -85,12 +85,12 @@
 </div>
 
 <!-- Modal -->
-<div class="modal fade" id="connectedDevices" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+<div class="modal fade" id="connectedDevices" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title" id="myModalLabel">Облако</h4>
+        <h4 class="modal-title" id="myModalLabel1">Облако</h4>
       </div>
       <div class="modal-body">
         <table id="deviceTable" class="table table-striped">
@@ -114,15 +114,15 @@
   <div class="container">
     <div class="btn-group" data-toggle="buttons">
         <label class="btn btn-default active" onclick="oscPlay = true;">
-            <input type="radio" name="options" id="option1" autocomplete="off" checked> 
+            <input type="radio" name="options" id="option3" checked> 
             <span class="glyphicon glyphicon-play" aria-hidden="true"></span>
         </label>
         <label class="btn btn-default" onclick="oscPlay = false;">
-            <input type="radio" name="options" id="option2" autocomplete="off">
+            <input type="radio" name="options" id="option4">
             <span class="glyphicon glyphicon-stop" aria-hidden="true"></span>
         </label>
     </div>
-    <button type="button" class="btn btn-default" data-toggle="button" aria-pressed="false" autocomplete="off" onclick="switchOscRec()">
+    <button type="button" class="btn btn-default" data-toggle="button" aria-pressed="false" onclick="switchOscRec()">
         <span class="glyphicon glyphicon-record" aria-hidden="true"></span>    
     </button>
     <button class="btn btn-default navbar-btn" onclick="clearOsc()"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
@@ -144,7 +144,7 @@
     </table>
 <nav class="navbar navbar-default navbar-fixed-bottom">
   <div class="container">
-        <button type="button" class="btn btn-default" data-toggle="button" aria-pressed="false" autocomplete="off" onclick="switchLogPlay()">
+        <button type="button" class="btn btn-default" data-toggle="button" aria-pressed="false" onclick="switchLogPlay()">
             <span class="glyphicon glyphicon-pause" aria-hidden="true"></span>    
         </button>
         <button class="btn btn-default navbar-btn" onclick="clearLog()"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>

@@ -49,7 +49,7 @@ http.createServer(function(request, response) {
       response.end();
     });
   });
-}).listen(parseInt(port, 10));
+}).listen(3000);
 
 console.log("HTTP Server started @ http://localhost:" + port + "/");
 
