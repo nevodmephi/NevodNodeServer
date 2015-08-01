@@ -38,8 +38,12 @@ function initjsPlumb() {
     instance.bind("click", function (c) {
         var f = "";
         var t = "";
-        document.getElementById("inputsFrom").innerHTML = "";
+        $('#inputsFrom').html('');
+        $('#inputsTo').html('');
+        /*
+document.getElementById("inputsFrom").innerHTML = "";
         document.getElementById("inputsTo").innerHTML = "";
+*/
         /*switch(c.source._type) {
             case "SER":
                 f += formStr("f","A");
@@ -63,7 +67,8 @@ function initjsPlumb() {
         f += formStr("f","A");
         f += formStr("f","B");
         f += formStr("f","C");
-        document.getElementById("inputsFrom").innerHTML = f;
+        $('#inputsFrom').html('f');
+/*         document.getElementById("inputsFrom").innerHTML = f; */
         /*switch(c.target._type) {
             case "SER":
                 t += formStr("t","Y");
@@ -86,11 +91,16 @@ function initjsPlumb() {
         t += formStr("t","A");
         t += formStr("t","B");
         t += formStr("t","C");
-        document.getElementById("inputsTo").innerHTML = t;
+        $('#inputsTo').html('t');
+/*         document.getElementById("inputsTo").innerHTML = t; */
         var l = c.getOverlay('label').getLabel();
         if(l!="not set") {
-            document.getElementById("f-" + l.split(" ")[0]).className += " active";
+        	$('#f-' + l.split(" ")[0]).addClass('active');
+        	$('#t-' + l.split(" ")[2]).addClass('active');
+           /*
+ document.getElementById("f-" + l.split(" ")[0]).className += " active";
             document.getElementById("t-" + l.split(" ")[2]).className += " active";
+*/
         }
         $('#connectionSettings').modal('show');
         curConnection = c;
@@ -242,7 +252,8 @@ function newBlock(type) {
         }
         newAddon._flag = !newAddon._flag;
         }
-    document.getElementById("statemachine-demo").appendChild(newAddon);
+    $('#statemachine-demo').append(newAddon);
+/*     document.getElementById("statemachine-demo").appendChild(newAddon); */
     window.jsp = instance;
     var windows = jsPlumb.getSelector("#" + "block" + curid);
     instance.draggable(windows);
@@ -279,27 +290,35 @@ function bufToString(b) {
 }
 
 function main() {
-  var schemeDiv = document.getElementById("statemachine-demo");
+  var schemeDiv = $('#statemachine-demo'); //document.getElementById("statemachine-demo");
   socket = io.connect(':8889');
   socket.on('event', function (data) {
-    if(data.data.length == 4) {        
-        document.getElementById(data.ip + "-prefix").innerHTML = bufToString(data.data);
+    if(data.data.length == 4) {  
+    	$('#' + data.ip + "-prefix").html(bufToString(data.data));      
+/*         document.getElementById(data.ip + "-prefix").innerHTML = bufToString(data.data); */
     } else { 
         showEvent(data.data,data.id);
     }
-    document.getElementById(data.ip + "-row").className = "info";
+    $('#' + data.ip + "-row").addClass('info');
+/*     document.getElementById(data.ip + "-row").className = "info"; */
     setTimeout(function() {
-        document.getElementById(data.ip + "-row").className = "success";        
+    	$('#' + data.ip + "-row").addClass('success');
+/*         document.getElementById(data.ip + "-row").className = "success";         */
     }, 50);
   });
   socket.on('client', function(data) {
-    document.getElementById('clients').innerHTML += '<tr id="' + data.ip + '-row" class="success"><td>' + data.ip + '</td><td id="' + data.ip + '-prefix"></td><td id="' + data.ip + '-state">ok</td><td><button type="button" class="btn btn-default btn-xs" data-toggle="button" aria-pressed="false" autocomplete="off">экран</button><button type="button" class="btn btn-default btn-xs" data-toggle="button" aria-pressed="false" autocomplete="off">звук</button></td><td><button type="button" class="btn btn-default btn-xs" onclick="installScheme(\'' + data.ip + '\')"><span class="glyphicon glyphicon-upload"></span></button></td></tr>';
+  	$('#clients').append('<tr id="' + data.ip + '-row" class="success"><td>' + data.ip + '</td><td id="' + data.ip + '-prefix"></td><td id="' + data.ip + '-state">ok</td><td><button type="button" class="btn btn-default btn-xs" data-toggle="button" aria-pressed="false" autocomplete="off">экран</button><button type="button" class="btn btn-default btn-xs" data-toggle="button" aria-pressed="false" autocomplete="off">звук</button></td><td><button type="button" class="btn btn-default btn-xs" onclick="installScheme(\'' + data.ip + '\')"><span class="glyphicon glyphicon-upload"></span></button></td></tr>');
+    /* document.getElementById('clients').innerHTML += '<tr id="' + data.ip + '-row" class="success"><td>' + data.ip + '</td><td id="' + data.ip + '-prefix"></td><td id="' + data.ip + '-state">ok</td><td><button type="button" class="btn btn-default btn-xs" data-toggle="button" aria-pressed="false" autocomplete="off">экран</button><button type="button" class="btn btn-default btn-xs" data-toggle="button" aria-pressed="false" autocomplete="off">звук</button></td><td><button type="button" class="btn btn-default btn-xs" onclick="installScheme(\'' + data.ip + '\')"><span class="glyphicon glyphicon-upload"></span></button></td></tr>'; */
   });
   socket.on('state', function (data) {
     switch(data.state) {
         case "error":
-            document.getElementById(data.ip + "-row").className = "danger";
+        	$('#' + data.ip + "-row").addClass('danger');
+        	$("#" + data.ip + "-state").html('error');
+            /*
+document.getElementById(data.ip + "-row").className = "danger";
             document.getElementById(data.ip + "-state").innerHTML = "error";
+*/
             break;
     }
   });
@@ -327,9 +346,9 @@ function parseScheme() {
         blocksNumber++;
         var $elem = $(elem);
         var flag=0;
-        var setting_alpha = document.getElementById($elem.attr('id') + "-alpha").value;
-        var setting_beta = document.getElementById($elem.attr('id') + "-beta").value;
-        var setting_gamma = document.getElementById($elem.attr('id') + "-gamma").value;
+        var setting_alpha = $('#' + $elem.attr('id') + "-alpha").val(); //document.getElementById($elem.attr('id') + "-alpha").value;
+        var setting_beta = $('#' + $elem.attr('id') + "-beta").val(); //document.getElementById($elem.attr('id') + "-beta").value;
+        var setting_gamma = $('#' + $elem.attr('id') + "-gamma").val(); //document.getElementById($elem.attr('id') + "-gamma").value;
         buffer.push(elem._type);
         buffer.push(Math.floor(setting_alpha/0x100)); buffer.push(setting_alpha%0x100);
         buffer.push(Math.floor(setting_beta/0x100)); buffer.push(setting_beta%0x100);
@@ -487,7 +506,8 @@ function switchOscRec() {
 }
 
 function logEvent(id,prefix,time,color) {
-    document.getElementById("eventLog").innerHTML = "<tr class='log-string' style='color:" + color + "'><td>" + id + "</td><td>" + prefix + "</td><td>" + time + "</td></tr>" + document.getElementById("eventLog").innerHTML;
+	$('#eventLog').html("<tr class='log-string' style='color:" + color + "'><td>" + id + "</td><td>" + prefix + "</td><td>" + time + "</td></tr>" + $('#eventLog').html());
+    /* document.getElementById("eventLog").innerHTML = "<tr class='log-string' style='color:" + color + "'><td>" + id + "</td><td>" + prefix + "</td><td>" + time + "</td></tr>" + document.getElementById("eventLog").innerHTML; */
 }
 
 function getRandomArbitary(min, max)
@@ -497,13 +517,21 @@ function getRandomArbitary(min, max)
 
 
 function openOsc() {
-    document.getElementById('oscill-container').style.visibility = "visible";
+	$('#oscill-container').css('visibility','visible');
+	$('#constructor-navbar').css('visibility','hidden');
+    /*
+document.getElementById('oscill-container').style.visibility = "visible";
     document.getElementById('constructor-navbar').style.visibility = "hidden";
+*/
 }
 
 function closeOsc() {
-    document.getElementById('oscill-container').style.visibility = "hidden";
+	$('#oscill-container').css('visibility','hidden');
+	$('#constructor-navbar').css('visibility','visible');
+   /*
+ document.getElementById('oscill-container').style.visibility = "hidden";
     document.getElementById('constructor-navbar').style.visibility = "visible";
+*/
 }
 
 function setMode(m) {
@@ -511,25 +539,36 @@ function setMode(m) {
         $("#btnScreen").removeClass("active");
         $("#btnLog").removeClass("active");
         $("#btnSettings").removeClass("active");
-        document.getElementById('oscill-container').style.visibility = "hidden";
+        
+        $('#oscill-container').css('visibility','hidden');
+		$('#constructor-navbar').css('visibility','hidden');
+		$('#log-container').css('visibility','hidden');
+		$('#settings-container').css('visibility','hidden');
+        /*
+document.getElementById('oscill-container').style.visibility = "hidden";
         document.getElementById('constructor-navbar').style.visibility = "hidden";
         document.getElementById('log-container').style.visibility = "hidden";
         document.getElementById('settings-container').style.visibility = "hidden";
+*/
     switch(m) {
         case "screen":
-            document.getElementById('oscill-container').style.visibility = "visible";
+        	$('#oscill-container').css('visibility','visible');
+/*             document.getElementById('oscill-container').style.visibility = "visible"; */
             $("#btnScreen").addClass("active");
             break;
         case "constructor":
-            document.getElementById('constructor-navbar').style.visibility = "visible";
+        	$('#constructor-navbar').css('visibility','visible');
+/*             document.getElementById('constructor-navbar').style.visibility = "visible"; */
             $("#btnConstructor").addClass("active"); 
             break;
         case "log":
-            document.getElementById('log-container').style.visibility = "visible";
+        	$('#log-container').css('visibility','visible');
+/*             document.getElementById('log-container').style.visibility = "visible"; */
             $("#btnLog").addClass("active");
             break;
         case "settings":
-            document.getElementById('settings-container').style.visibility = "visible";
+        	$('#settings-container').css('visibility','visible')
+/*             document.getElementById('settings-container').style.visibility = "visible"; */
             $("#btnSettings").addClass("active");
             break;
     }
@@ -564,7 +603,8 @@ function clearOsc() {
 }
 
 function clearLog() {
-    document.getElementById("eventLog").innerHTML = "";
+	$('#eventLog').html('');
+/*     document.getElementById("eventLog").innerHTML = ""; */
 }
 
 function switchLogPlay() {
