@@ -67,7 +67,7 @@ document.getElementById("inputsFrom").innerHTML = "";
         f += formStr("f","A");
         f += formStr("f","B");
         f += formStr("f","C");
-        $('#inputsFrom').html('f');
+        $('#inputsFrom').html(f);
 /*         document.getElementById("inputsFrom").innerHTML = f; */
         /*switch(c.target._type) {
             case "SER":
@@ -91,7 +91,7 @@ document.getElementById("inputsFrom").innerHTML = "";
         t += formStr("t","A");
         t += formStr("t","B");
         t += formStr("t","C");
-        $('#inputsTo').html('t');
+        $('#inputsTo').html(t);
 /*         document.getElementById("inputsTo").innerHTML = t; */
         var l = c.getOverlay('label').getLabel();
         if(l!="not set") {
