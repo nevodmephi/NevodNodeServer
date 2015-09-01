@@ -18,6 +18,8 @@ var logPlay = true;
 var colors = ["#FF6600", "#330099", "#FFCC00", "#CC0000", "#339900", "#CC3333", "#996600", "#CC00FF", "#0066CC","#6600CC","#FF6699","#00CC99","#FF6666","#666699","#CCFF33","#999966"];
 var colorIt = -1;
 
+var clientsCount=0;
+
 function initjsPlumb() {
     instance = jsPlumb.getInstance({
         Endpoint: ["Dot", {radius: 1}],
@@ -308,6 +310,8 @@ function main() {
   });
   socket.on('client', function(data) {
   	$('#clients').append('<tr id="' + data.ip + '-row" class="success"><td>' + data.ip + '</td><td id="' + data.ip + '-prefix"></td><td id="' + data.ip + '-state">ok</td><td><button type="button" class="btn btn-default btn-xs" data-toggle="button" aria-pressed="false" autocomplete="off">экран</button><button type="button" class="btn btn-default btn-xs" data-toggle="button" aria-pressed="false" autocomplete="off">звук</button></td><td><button type="button" class="btn btn-default btn-xs" onclick="installScheme(\'' + data.ip + '\')"><span class="glyphicon glyphicon-upload"></span></button></td></tr>');
+    clientsCount++;
+    updateClientsCount();
     /* document.getElementById('clients').innerHTML += '<tr id="' + data.ip + '-row" class="success"><td>' + data.ip + '</td><td id="' + data.ip + '-prefix"></td><td id="' + data.ip + '-state">ok</td><td><button type="button" class="btn btn-default btn-xs" data-toggle="button" aria-pressed="false" autocomplete="off">экран</button><button type="button" class="btn btn-default btn-xs" data-toggle="button" aria-pressed="false" autocomplete="off">звук</button></td><td><button type="button" class="btn btn-default btn-xs" onclick="installScheme(\'' + data.ip + '\')"><span class="glyphicon glyphicon-upload"></span></button></td></tr>'; */
   });
   socket.on('state', function (data) {
@@ -315,6 +319,8 @@ function main() {
         case "error":
         	$('#' + data.ip + "-row").addClass('danger');
         	$("#" + data.ip + "-state").html('error');
+            clientsCount--;
+            updateClientsCount();
             /*
 document.getElementById(data.ip + "-row").className = "danger";
             document.getElementById(data.ip + "-state").innerHTML = "error";
@@ -610,4 +616,8 @@ function clearLog() {
 function switchLogPlay() {
     logPlay = !logPlay;
 
+}
+
+function updateClientsCount() {
+    $('#cloudButton').html(clientsCount + ' расчетных узлов готовы');
 }

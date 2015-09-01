@@ -1,7 +1,16 @@
 @import url(http://fonts.googleapis.com/css?family=Exo+2:300&subset=latin,cyrillic);
+@import url(https://fonts.googleapis.com/css?family=Kelly+Slab&subset=latin,cyrillic);
 
 body * {
-    font-family: 'Exo 2', sans-serif;
+    font-family: 'Kelly Slab', cursive;
+}
+
+.navbar-brand {
+    font-size: 200%;
+}
+
+.dropdown-toggle {
+    text-decoration: underline;
 }
 
 thead {
@@ -33,6 +42,7 @@ thead {
 
 body {
    background-image: url('/img/ps_neutral.png');
+   overflow: hidden;  
 }
 
 iframe {
