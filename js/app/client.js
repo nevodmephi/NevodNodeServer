@@ -46,18 +46,21 @@ function initjsPlumb() {
 document.getElementById("inputsFrom").innerHTML = "";
         document.getElementById("inputsTo").innerHTML = "";
 */
-        /*switch(c.source._type) {
-            case "SER":
-                f += formStr("f","A");
+        switch(c.source._type) {
+            case 2:
+                f += formStr("f","<b>q<sub>1</sub>(t)</b>, кАЦП");
+                f += formStr("f","<b>q<sub>2</sub>(t)</b>, кАЦП");
+                f += formStr("f","<b>q<sub>3</sub>(t)</b>, кАЦП");
                 break;
-            case "MOD":
-                f += formStr("f","Checked");
-                f += formStr("f","True");
-                f += formStr("f","False");
+            case 4:
+                f += formStr("f","<b>q<sub>1</sub>(t)</b>, кАЦП");
+                f += formStr("f","<b>q<sub>2</sub>(t)</b>, кАЦП");
+                f += formStr("f","<b>q<sub>3</sub>(t)</b>, кАЦП");
                 break;
-            case "COU":
-                f += formStr("f","Y1");
-                f += formStr("f","Y2");
+            case 3:
+                f += formStr("t","<b>N(q)</b>, событий");
+                f += formStr("t","<b>n(q)</b>, %");
+                f += formStr("t","<b>n(q)</b>, 1/1000");
                 break;
             case "SRC":
                 f += formStr("f","Event");
@@ -65,34 +68,30 @@ document.getElementById("inputsFrom").innerHTML = "";
             case "FIL":
                 f += formStr("f","Event");
                 break;
-        }*/
-        f += formStr("f","A");
-        f += formStr("f","B");
-        f += formStr("f","C");
+        }
         $('#inputsFrom').html(f);
 /*         document.getElementById("inputsFrom").innerHTML = f; */
-        /*switch(c.target._type) {
-            case "SER":
-                t += formStr("t","Y");
-                t += formStr("t","X");
+        switch(c.target._type) {
+            case 2:
+                t += formStr("f","<b>q<sub>1</sub>(t)</b>, кАЦП");
+                t += formStr("f","<b>q<sub>2</sub>(t)</b>, кАЦП");
+                t += formStr("f","<b>q<sub>3</sub>(t)</b>, кАЦП");
                 break;
-            case "MOD":
-                t += formStr("t","X");
-                t += formStr("t","Y");
+            case 4:
+                f += formStr("f","<b>S<sub>1</sub>(t)</b>, синхр");
+                f += formStr("f","<b>S<sub>2</sub>(t)</b>, синхр");
+                f += formStr("f","<b>S<sub>3</sub>(t)</b>, синхр");
                 break;
-            case "COU":
-                t += formStr("t","Checked");
-                t += formStr("t","True");
-                t += formStr("t","False");
+            case 3:
+                t += formStr("f","<b>q<sub>1</sub>(t)</b>, кАЦП");
+                t += formStr("f","<b>q<sub>2</sub>(t)</b>, кАЦП");
+                t += formStr("f","<b>q<sub>3</sub>(t)</b>, кАЦП");
                 break;
             case "SRC":
                 break;
             case "FIL":
                 break;
-        }*/
-        t += formStr("t","A");
-        t += formStr("t","B");
-        t += formStr("t","C");
+        }
         $('#inputsTo').html(t);
 /*         document.getElementById("inputsTo").innerHTML = t; */
         var l = c.getOverlay('label').getLabel();
@@ -131,7 +130,7 @@ document.getElementById("inputsFrom").innerHTML = "";
 }
 
 function formStr(t, name) {
-    return ('<label class="btn btn-warning ' + t + '-input' + '" id="' + t + '-' + name + '"><input type="radio" name="options" autocomplete="off">' + name + '</label>');
+    return ('<label class="btn btn-default btn-sm ' + t + '-input' + '" id="' + t + '-' + name + '"><input type="radio" name="options" autocomplete="off">' + name + '</label>');
 }
 
 function deleteConnection() {
@@ -160,13 +159,16 @@ function newBlock(type) {
     newAddonPanel.className = "panel panel-default";
     newAddonPanelHeading = document.createElement('div');
     newAddonPanelSettingsButton = document.createElement('button');
+    newAddonPanelDeleteButton = document.createElement('button');
     newAddonPanelHeading.className = "panel-heading";
 
     newAddonPanelHeadingButton = document.createElement('button');
     newAddonPanelHeadingButton.className = "ep btn btn-warning btn-xs";
-    newAddonPanelHeadingButton.innerHTML = "&nbsp;";    
+    newAddonPanelHeadingButton.innerHTML = "↰";    
     newAddonPanelSettingsButton.className = "btn btn-success btn-xs";
-    newAddonPanelSettingsButton.innerHTML = "&nbsp;";    
+    newAddonPanelSettingsButton.innerHTML = "<span class='glyphicon glyphicon-cog'></span>";
+    newAddonPanelDeleteButton.className = "btn btn-danger btn-xs pull-right";
+    newAddonPanelDeleteButton.innerHTML = "<span class='glyphicon glyphicon-remove'></span>";   
     //newAddon.innerHTML = '<div class="panel panel-default"><div class="panel-heading"><button class="ep btn btn-warning btn-xs"><span class="ep glyphicon glyphicon-flash"></span></button>&nbsp;<a target="_blank" href="' + data.url + '"><button class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-fullscreen"></span></button></a>&nbsp; ' + data.title + '<button onclick="$(\'#addonSettingsDialog\').modal({show: true});" class="btn btn-danger btn-xs pull-right"><span class="glyphicon glyphicon-wrench"></span></button></div><div class="panel-body"><div id="' + data.id + '-canvas" style="width:' + data.width + 'px;height:' + data.height + 'px;"></div></div></div>';
     newAddonPanelHeadingHeader = document.createElement('span');
 
@@ -175,28 +177,28 @@ function newBlock(type) {
     switch(type) {
         case "SER":                           
             newAddon._type = 2;     //SERVER
-            hd = "Сервер";
+            hd = "SER";
             ap = "порог А";
             bp = "порог B";
             cp = "порог C";
             break;
         case "RND":
             newAddon._type = 1;     //Randomize
-            hd = "Случ. соб.";
+            hd = "RND";
             ap = "ниж. гр.";
             bp = "верх. гр.";
             cp = "интервал";
             break;
         case "COU":
             newAddon._type = 3; 
-            hd = "Счетчик";
+            hd = "COU";
             ap = "начало";
             bp = "ширина";
             cp = "число";
             break;
         case "SRC":
             newAddon._type = 4; 
-            hd = "Источник";
+            hd = "SRC";
             ap = "номер";
             bp = "вход";
             cp = "триггер";
@@ -214,12 +216,13 @@ function newBlock(type) {
     newAddonPanelHeading.appendChild(newAddonPanelHeadingButton);
     newAddonPanelHeading.appendChild(newAddonPanelSettingsButton);
     newAddonPanelHeading.appendChild(newAddonPanelHeadingHeader);
+    newAddonPanelHeading.appendChild(newAddonPanelDeleteButton);
     newAddonPanel.appendChild(newAddonPanelHeading);
 
     newAddon.style.left = document.body.scrollLeft + window.innerWidth/2 - 300/2 + getRandomInt(-25,25) +"px";
     newAddon.style.top = document.body.scrollTop + window.innerHeight*0.6 + getRandomInt(-25,25) + "px";
 
-    newAddon.style.width = 160 + "px";
+    newAddon.style.width = 150 + "px";
 
     newAddon.appendChild(newAddonPanel);
 
@@ -254,6 +257,11 @@ function newBlock(type) {
         }
         newAddon._flag = !newAddon._flag;
         }
+
+    addonAlpha.style.visibility = "hidden";
+    addonBeta.style.visibility = "hidden";
+    addonGamma.style.visibility = "hidden";
+
     $('#statemachine-demo').append(newAddon);
 /*     document.getElementById("statemachine-demo").appendChild(newAddon); */
     window.jsp = instance;
@@ -278,6 +286,8 @@ function newBlock(type) {
             jsPlumb.fire("jsPlumbDemoLoaded", instance);
     });
     jsPlumb.fire("jsPlumbDemoLoaded", instance);
+
+    newAddonPanelDeleteButton.setAttribute('onclick','jsPlumb.detachAllConnections("block' + curid + '");jsPlumb.empty("block' + curid + '")');
 
     curid++;
 

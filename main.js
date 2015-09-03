@@ -4,9 +4,7 @@ var http = require("http"),
     net = require('net'),
     io = require("socket.io"),
     express = require("express"),
-    fs = require("fs"),
-    vm = require("vm")
-    port = process.argv[2] || 80;
+    fs = require("fs")
 
 var state = 0;
 var scheme = {};
@@ -41,6 +39,8 @@ http.createServer(function(request, response) {
         return;
       }
 
+      c = {"a": 4,"b": 5};
+      
       var headers = {};
       var contentType = contentTypesByExtension[path.extname(filename)];
       if (contentType) headers["Content-Type"] = contentType;
@@ -51,7 +51,7 @@ http.createServer(function(request, response) {
   });
 }).listen(80);
 
-console.log("HTTP Server started @ http://localhost:" + port + "/");
+console.log("HTTP Server started @ http://localhost:" + 80 + "/");
 
 var app = express();
 var server = http.createServer(app);
@@ -67,7 +67,7 @@ io.sockets.on('connection', function (socket) {
     socket.emit('state',{ip: clients[i].name, state: clients[i].state});
   }
 
-  socket.on('play', function (data) {
+  /*socket.on('play', function (data) {
     console.log("[PLAY]\n");
     state = 0;
   });
@@ -84,17 +84,17 @@ io.sockets.on('connection', function (socket) {
     } else {     
       console.log("[PAUSE]\n");
     }
-  });
+  });*/
 
-  socket.on('refresh', function (data) {
+  /*socket.on('refresh', function (data) {
       scheme = JSON.parse(data);
       console.log("Scheme refreshed\n");
-  });
+  });*/
 
   socket.on('scheme-install', function (data) {
       for(var i in clients) {
         console.log(data);
-        if(clients[i].name == data.ip) {
+          if(clients[i].name == data.ip) {
           clients[i].write(new Buffer(data.scheme));  
         }
       }
