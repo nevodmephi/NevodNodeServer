@@ -7,7 +7,7 @@
         <link href="/img/logo_small.png" rel="shortcut icon" type="image/png" />      
         <link href="/css/bootstrap.min.css" rel="stylesheet">
     </head>
-    <body onload="initjsPlumb();main();" data-demo-id="statemachine" data-library="dom">
+    <body onload="initjsPlumb();main();" onKeyDown="hotKey(event)" data-demo-id="statemachine" data-library="dom">
 
 <!-- Navbar -->
 
@@ -31,7 +31,7 @@
         </li>
       </ul>
                 <div class="btn-group pull-right" role="group" aria-label="...">
-                    <button onclick="$('#connectedDevices').modal('show')" id="cloudButton" type="button" class="btn navbar-btn btn-xs btn-link">Готово узлов: 0</button>
+                    <button onclick="$('#connectedDevices').modal('show')" id="cloudButton" type="button" class="btn navbar-btn btn-xs btn-link">нет связи с сервером</button>
                 </div>
             </div>
         </nav>
@@ -42,10 +42,7 @@
 
   <div class="container">
   <span>Создать блок:&nbsp;</span>
-    <button class="btn btn-default btn-xs navbar-btn" onclick="newBlock('SRC')">SRC</button>
-    <button class="btn btn-default btn-xs navbar-btn" onclick="newBlock('COU')">COU</button>
-    <button class="btn btn-default btn-xs navbar-btn" onclick="newBlock('SER')">SRV</button>
-    <button class="btn btn-default btn-xs navbar-btn" onclick="newBlock('RND')">RND</button>
+    <button class="btn btn-default btn-xs navbar-btn" onclick="newBlock('SRC')">Новый</button>
 
       <div class="btn-group pull-right">
   	<button onclick="$('#connectedDevices').modal('show')" id="cloudButton" type="button" class="btn navbar-btn btn-xs btn-default">&nbsp;<span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span>&nbsp;&nbsp;Сохранить</button>
@@ -96,17 +93,17 @@
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title" id="myModalLabel1">Облако</h4>
+        <h4 class="modal-title" id="myModalLabel1">Расчеты идут по схемам:</h4>
       </div>
       <div class="modal-body">
         <table id="deviceTable" class="table table-striped">
-        <thead><tr><td>IP</td><td>Префикс</td><td>Состояние</td><td>Параметры</td><td>Схема</td></tr></thead>
+        <thead><tr><td>Название</td><td></td><td>Состояние</td></tr></thead>
         <tbody id="clients">
         </tbody>
         </table>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-default" onclick="deleteDisconnected()">удалить завершенные соединения</button>
+        <button type="button" class="btn btn-success" onclick="deleteDisconnected()">Запуск расчета по текущей схеме</button>
       </div>
     </div>
   </div>
@@ -214,7 +211,8 @@
         <script src="/js/jquery-2.1.4.min.js"></script>
         <script src="/js/flot/jquery.flot.js"></script>
         <script src="/js/bootstrap/bootstrap.min.js"></script>
-        <!-- sockets.io -->
+        <script src=""></script><script src="/js/ace-builds/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+      <!-- sockets.io -->
         <script>document.write('<script src="//'+ location.hostname + ':8889/socket.io/socket.io.js">\x3C/script>')</script>
         <script type="text/javascript">
         	var bodyScroll;

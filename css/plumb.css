@@ -2,7 +2,7 @@
 @import url(https://fonts.googleapis.com/css?family=Kelly+Slab&subset=latin,cyrillic);
 
 body * {
-    font-family: 'Kelly Slab', cursive;
+    /*font-family: 'Kelly Slab', cursive;*/
 }
 
 .navbar-brand {
@@ -20,8 +20,8 @@ thead {
 .demo {
     /* for IE10+ touch devices */
     position: absolute;
-    width: 3000px;
-    height: 3000px;
+    width: 8000px;
+    height: 8000px;
     touch-action:none;
 }
 
@@ -191,4 +191,8 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
 
 tr.log-string:hover {
     background-color: #aaa !important;
+}
+
+.ace_editor {
+    margin: 1em;
 }

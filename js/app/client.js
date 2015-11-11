@@ -165,7 +165,7 @@ function newBlock(type) {
     newAddonPanelHeadingButton = document.createElement('button');
     newAddonPanelHeadingButton.className = "ep btn btn-warning btn-xs";
     newAddonPanelHeadingButton.innerHTML = "↰";    
-    newAddonPanelSettingsButton.className = "btn btn-success btn-xs";
+    newAddonPanelSettingsButton.className = "btn btn-default btn-xs";
     newAddonPanelSettingsButton.innerHTML = "<span class='glyphicon glyphicon-cog'></span>";
     newAddonPanelDeleteButton.className = "btn btn-danger btn-xs pull-right";
     newAddonPanelDeleteButton.innerHTML = "<span class='glyphicon glyphicon-remove'></span>";   
@@ -174,43 +174,7 @@ function newBlock(type) {
 
     var hd;
     var ap; var bp; var gp;
-    switch(type) {
-        case "SER":                           
-            newAddon._type = 2;     //SERVER
-            hd = "SER";
-            ap = "порог А";
-            bp = "порог B";
-            cp = "порог C";
-            break;
-        case "RND":
-            newAddon._type = 1;     //Randomize
-            hd = "RND";
-            ap = "ниж. гр.";
-            bp = "верх. гр.";
-            cp = "интервал";
-            break;
-        case "COU":
-            newAddon._type = 3; 
-            hd = "COU";
-            ap = "начало";
-            bp = "ширина";
-            cp = "число";
-            break;
-        case "SRC":
-            newAddon._type = 4; 
-            hd = "SRC";
-            ap = "номер";
-            bp = "вход";
-            cp = "триггер";
-            break;
-        case "FIL":
-            newAddon._type = 3;
-            hd = "Файл";
-            ap = "путь";
-            bp = "интервал";
-            cp = "пакетов";
-            break;
-    }
+
     newAddonPanelHeadingHeader.innerHTML = "&nbsp;" + hd;
 
     newAddonPanelHeading.appendChild(newAddonPanelHeadingButton);
@@ -222,47 +186,31 @@ function newBlock(type) {
     newAddon.style.left = document.body.scrollLeft + window.innerWidth/2 - 300/2 + getRandomInt(-25,25) +"px";
     newAddon.style.top = document.body.scrollTop + window.innerHeight*0.6 + getRandomInt(-25,25) + "px";
 
-    newAddon.style.width = 150 + "px";
+    //newAddon.style.width = 30 + "em";
+    //newAddon.style.height = 30 + "em";
 
     newAddon.appendChild(newAddonPanel);
 
-    var newAddonTextbox = document.createElement('input');
-    newAddonTextbox.placeholder = ap;
-    newAddonTextbox.className = "form-control";
-    newAddonTextbox.id = "block" + curid + "-alpha";
-    newAddonPanel.appendChild(newAddonTextbox);
-    var addonAlpha = newAddonTextbox;
-    var newAddonTextbox = document.createElement('input');
-    newAddonTextbox.placeholder = bp;
-    newAddonTextbox.className = "form-control";
-    newAddonTextbox.id = "block" + curid + "-beta";
-    newAddonPanel.appendChild(newAddonTextbox);
-    var addonBeta = newAddonTextbox;
-    var newAddonTextbox = document.createElement('input');
-    newAddonTextbox.placeholder = cp;
-    newAddonTextbox.className = "form-control";
-    newAddonTextbox.id = "block" + curid + "-gamma";
-    newAddonPanel.appendChild(newAddonTextbox);
-    var addonGamma = newAddonTextbox;
+    var newAddonEditor = document.createElement('div');
+    newAddonEditor.id = "block" + curid + "-editor";
 
-        newAddonPanelSettingsButton.onclick = function() {
-        if(newAddon._flag) {
-            addonAlpha.style.visibility = "hidden";
-            addonBeta.style.visibility = "hidden";
-            addonGamma.style.visibility = "hidden";
-        } else {
-            addonAlpha.style.visibility = "visible";
-            addonBeta.style.visibility = "visible";
-            addonGamma.style.visibility = "visible";           
-        }
-        newAddon._flag = !newAddon._flag;
-        }
-
-    addonAlpha.style.visibility = "hidden";
-    addonBeta.style.visibility = "hidden";
-    addonGamma.style.visibility = "hidden";
+    newAddonPanel.appendChild(newAddonEditor);
 
     $('#statemachine-demo').append(newAddon);
+
+    newAddonEditor._dom = new Object();
+    newAddonEditor._dom = new ace.edit("block" + curid + "-editor");
+    newAddonEditor._dom._mode = false;
+    newAddonEditor._dom.setTheme("ace/theme/clouds");
+    newAddonEditor._dom.getSession().setMode("ace/mode/javascript");
+    newAddonEditor.style.width = "40em";
+    newAddonEditor.style.height = "35em";
+
+    newAddonEditor._dom.setOptions({
+        fontFamily: "monospace",
+        fontSize: "8pt"
+    });
+
 /*     document.getElementById("statemachine-demo").appendChild(newAddon); */
     window.jsp = instance;
     var windows = jsPlumb.getSelector("#" + "block" + curid);
@@ -288,9 +236,19 @@ function newBlock(type) {
     jsPlumb.fire("jsPlumbDemoLoaded", instance);
 
     newAddonPanelDeleteButton.setAttribute('onclick','jsPlumb.detachAllConnections("block' + curid + '");jsPlumb.empty("block' + curid + '")');
-
+    newAddonPanelSettingsButton.setAttribute('onclick','flipMode(document.getElementById("block' + curid + '-editor")._dom)');
     curid++;
+}
 
+function flipMode(editor) {
+    if(editor._mode == false) {
+        editor.setTheme("ace/theme/solarized_light"); 
+        editor.getSession().setMode("ace/mode/plain_text");
+    } else {
+        editor.setTheme("ace/theme/clouds");
+        editor.getSession().setMode("ace/mode/javascript");
+    }
+    editor._mode = !editor._mode;
 }
 
 function bufToString(b) {
@@ -630,4 +588,15 @@ function switchLogPlay() {
 
 function updateClientsCount() {
     $('#cloudButton').html(clientsCount + ' расчетных узлов готовы');
+}
+
+function hotKey(event) {
+    switch(event.keyCode) {
+        case 27:
+            document.body.style.webkitTransform = "scale(0.7)";
+            document.body.style.mozTransform = "scale(0.7)";
+            document.body.style.oTransform = "scale(0.7)";
+            document.body.style.transform = "scale(0.7)";
+            break;
+    }    
 }
