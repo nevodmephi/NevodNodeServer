@@ -113,7 +113,7 @@ document.getElementById("inputsFrom").innerHTML = "";
         instance.makeSource(windows, {
             filter: ".ep",
             anchor: "Continuous",
-            connector: [ "StateMachine", { curviness: 10 } ],
+            connector: [ "StateMachine", { curviness: 1 } ],
             connectorStyle: { strokeStyle: "#333333", lineWidth: 1, outlineColor: "transparent", outlineWidth: 10 },
             maxConnections: 5,
             onMaxConnections: function (info, e) {
@@ -219,7 +219,7 @@ function newBlock(type) {
         instance.makeSource(windows, {
             filter: ".ep",
             anchor: "Continuous",
-            connector: [ "StateMachine", { curviness: 10 } ],
+            connector: [ "StateMachine", { curviness: 1 } ],
             connectorStyle: { strokeStyle: "#333333", lineWidth: 1, outlineColor: "transparent", outlineWidth: 10 },
             maxConnections: 5,
             onMaxConnections: function (info, e) {
@@ -282,20 +282,26 @@ function main() {
     updateClientsCount();
     /* document.getElementById('clients').innerHTML += '<tr id="' + data.ip + '-row" class="success"><td>' + data.ip + '</td><td id="' + data.ip + '-prefix"></td><td id="' + data.ip + '-state">ok</td><td><button type="button" class="btn btn-default btn-xs" data-toggle="button" aria-pressed="false" autocomplete="off">экран</button><button type="button" class="btn btn-default btn-xs" data-toggle="button" aria-pressed="false" autocomplete="off">звук</button></td><td><button type="button" class="btn btn-default btn-xs" onclick="installScheme(\'' + data.ip + '\')"><span class="glyphicon glyphicon-upload"></span></button></td></tr>'; */
   });
-  socket.on('state', function (data) {
-    switch(data.state) {
-        case "error":
-        	$('#' + data.ip + "-row").addClass('danger');
-        	$("#" + data.ip + "-state").html('error');
-            clientsCount--;
-            updateClientsCount();
-            /*
-document.getElementById(data.ip + "-row").className = "danger";
-            document.getElementById(data.ip + "-state").innerHTML = "error";
-*/
-            break;
-    }
-  });
+
+    socket.on('handshake',function(data) {
+        for(var i in data) {
+            $('#clients').append('<tr class="scheme-status-string scheme-' + data[i].name +'"><td class="scheme-status-string"><button class="btn btn-link btn-xs">' + data[i].name + '</button><td><td>' + data[i].status + '</td><td><button class="btn btn-default btn-xs" onclick=""><span class="glyphicon glyphicon-stop" aria-hidden="true"></span></button>&nbsp;<button class="btn btn-default btn-xs" onclick=""><span class="glyphicon glyphicon-pause" aria-hidden="true"></span></button>&nbsp;<button class="btn btn-default btn-xs" onclick=""><span class="glyphicon glyphicon-play" aria-hidden="true"></span></button></td><td><button onclick="removeScheme(\'' + data.name + '\')" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button></td></tr>');                
+        }             
+    })
+    
+    socket.on('scheme-installed', function(data) {
+        $('#clients').append('<tr class="scheme-status-string scheme-' + data.name +'"><td class="scheme-status-string"><button class="btn btn-link btn-xs">' + data.name + '</button><td><td>installed</td><td><button class="btn btn-default btn-xs" onclick=""><span class="glyphicon glyphicon-stop" aria-hidden="true"></span></button>&nbsp;<button class="btn btn-default btn-xs" onclick=""><span class="glyphicon glyphicon-pause" aria-hidden="true"></span></button>&nbsp;<button class="btn btn-default btn-xs" onclick=""><span class="glyphicon glyphicon-play" aria-hidden="true"></span></button></td><td><button onclick="removeScheme(\'' + data.name + '\')" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button></td></tr>');        
+    });
+
+    socket.on('scheme-removed', function(data) {
+        $('.scheme-' + data.name).each(function (idx, elem) {
+            $(elem).remove();
+        });
+    })
+
+    socket.on('scheme-wrong', function(data) {
+        alert(0);
+    })
 }
 
 function getRandomInt(min, max)
@@ -304,121 +310,54 @@ function getRandomInt(min, max)
 }
 
 function parseScheme() {
-    var model = {};
+    var scheme = new Object();
     var blocksNumber=0;
     var connections = [];
-    var buffer = [];
+    var blocks = [];
     $.each(instance.getConnections(), function (idx, connection) {
         connections.push({
             from: connection.sourceId,
-            to: connection.targetId,
-            out: connection.getOverlay('label').getLabel().split(" ")[2],
-            inp: connection.getOverlay('label').getLabel().split(" ")[0],
+            to: connection.targetId
         });
     });
     $("#statemachine-demo .w").each(function (idx, elem) {
         blocksNumber++;
         var $elem = $(elem);
-        var flag=0;
-        var setting_alpha = $('#' + $elem.attr('id') + "-alpha").val(); //document.getElementById($elem.attr('id') + "-alpha").value;
-        var setting_beta = $('#' + $elem.attr('id') + "-beta").val(); //document.getElementById($elem.attr('id') + "-beta").value;
-        var setting_gamma = $('#' + $elem.attr('id') + "-gamma").val(); //document.getElementById($elem.attr('id') + "-gamma").value;
-        buffer.push(elem._type);
-        buffer.push(Math.floor(setting_alpha/0x100)); buffer.push(setting_alpha%0x100);
-        buffer.push(Math.floor(setting_beta/0x100)); buffer.push(setting_beta%0x100);
-        buffer.push(Math.floor(setting_gamma/0x100)); buffer.push(setting_gamma%0x100);
-        flag=0;
-        for(var i in connections) {
-            if((connections[i].to.split("block").join("") == $elem.attr('id').split("block").join(""))&&(connections[i].out=="A")) {
-                switch(connections[i].inp) {
-                    case "A":
-                        buffer.push(1);
-                        break;
-                    case "B":
-                        buffer.push(2);
-                        break;
-                    case "C":
-                        buffer.push(3);
-                        break;
-                }
-                buffer.push(parseInt(connections[i].from.split("block").join("")));               
-                flag=1;
-            }
-        }
-        if(flag==0) {
-            buffer.push(0); buffer.push(255);
-        }
-        flag=0;
-        for(var i in connections) {
-            if((connections[i].to.split("block").join("") == $elem.attr('id').split("block").join(""))&&(connections[i].out=="B")) { 
-                switch(connections[i].inp) {
-                    case "A":
-                        buffer.push(1);
-                        break;
-                    case "B":
-                        buffer.push(2);
-                        break;
-                    case "C":
-                        buffer.push(3);
-                        break;
-                }
-                buffer.push(parseInt(connections[i].from.split("block").join(""))); 
-                flag=1;             
-            }
-        }
-        if(flag==0) {
-            buffer.push(0); buffer.push(255);
-        }
-        flag=0;
-        for(var i in connections) {
-            if((connections[i].to.split("block").join("") == $elem.attr('id').split("block").join(""))&&(connections[i].out=="C")) { 
-                switch(connections[i].inp) {
-                    case "A":
-                        buffer.push(1);
-                        break;
-                    case "B":
-                        buffer.push(2);
-                        break;
-                    case "C":
-                        buffer.push(3);
-                        break;
-                }
-                buffer.push(parseInt(connections[i].from.split("block").join(""))); 
-                flag=1;             
-            }
-        }
-        if(flag==0) {
-            buffer.push(0); buffer.push(255);
-        }
+        blocks.push({id: elem.id, code: document.getElementById(elem.id + "-editor")._dom.getValue()});
     }); 
-    /*model = {
-        b: blocks,
-        c: connections
+    for(var j in blocks) {
+        blocks[j].connects = [];
     }
-    outstr += "BLK\n\n";
-    for(var i in model.b) {
-        outstr += model.b[i].id + "\n";
-        outstr += model.b[i].left + "\n";
-        outstr += model.b[i].top + "\n";
-        outstr += model.b[i].alpha + "\n";
-        outstr += model.b[i].beta + "\n";
-        outstr += model.b[i].gamma + "\n\n";
+    for(var i in connections) {
+        for(var j in blocks) {
+            if(connections[i].from == blocks[j].id) {
+                blocks[j].connects.push(connections[i].to);
+            }
+        }
     }
-    outstr += "CON\n\n";
-    for(var i in model.c) {
-        outstr += model.c[i].from + "\n";
-        outstr += model.c[i].to + "\n";
-        outstr += model.c[i].out + "\n";
-        outstr += model.c[i].inp + "\n";
-    }
-    var modelStr = JSON.stringify(model);*/
-    buffer.unshift(blocksNumber % 0x100);
-    buffer.unshift(Math.floor(blocksNumber/0x100));
-    return buffer;
+    scheme.blocks = blocks;
+    scheme.name = document.getElementById('schemeName').value;
+    return scheme;
+}
+
+function checkSchemeName(n) {
+    var flag = false;
+    $('.scheme-status-string').each(function (idx, elem) {
+        if(n==elem.innerHTML) {
+            document.getElementById("schemeInstallButton").innerHTML = "Обновить схему";
+            flag = true;            
+        }
+    });
+    if (flag==false) document.getElementById("schemeInstallButton").innerHTML = "Установить схему";
+    return false;
 }
 
 function installScheme(a) {
     socket.emit('scheme-install',{scheme: parseScheme(), ip: a});
+}
+
+function removeScheme(a) {
+    socket.emit('scheme-remove',{name: a});    
 }
 
 function initOsc() {

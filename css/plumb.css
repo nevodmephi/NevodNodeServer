@@ -196,3 +196,8 @@ tr.log-string:hover {
 .ace_editor {
     margin: 1em;
 }
+
+#schemeName {
+    width: 10em;
+    display: inline-block;
+}

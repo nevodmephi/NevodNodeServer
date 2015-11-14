@@ -18,16 +18,16 @@
       			</a>
       <ul class="nav navbar-nav">
         <li class="active" id="btnConstructor">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('constructor')">Схема</a>
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('constructor')">Схема обработки</a>
         </li>
         <li id="btnScreen">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('screen')">Экран</a>
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('screen')">Визуализатор</a>
         </li>
         <li id="btnLog">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('log')">Журнал</a>
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('log')">База данных</a>
         </li>
         <li id="btnSettings">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('settings')">Настройки</a>
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('settings')">Контроль состояний</a>
         </li>
       </ul>
                 <div class="btn-group pull-right" role="group" aria-label="...">
@@ -41,8 +41,9 @@
 <nav class="navbar navbar-default navbar-fixed-bottom" id="constructor-navbar">
 
   <div class="container">
-  <span>Создать блок:&nbsp;</span>
-    <button class="btn btn-default btn-xs navbar-btn" onclick="newBlock('SRC')">Новый</button>
+    <button class="btn btn-default navbar-btn" onclick="newBlock('SRC')"><span class="glyphicon glyphicon-flash" aria-hidden="true"></span>&nbsp;Автомат</button>
+    <button class="btn btn-default navbar-btn" onclick="newBlock('SRC')"><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>&nbsp;Буфер</button>
+    <button class="btn btn-default navbar-btn" onclick="newBlock('SRC')"><span class="glyphicon glyphicon-hourglass" aria-hidden="true"></span>&nbsp;Таймер</button>
 
       <div class="btn-group pull-right">
   	<button onclick="$('#connectedDevices').modal('show')" id="cloudButton" type="button" class="btn navbar-btn btn-xs btn-default">&nbsp;<span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span>&nbsp;&nbsp;Сохранить</button>
@@ -97,13 +98,14 @@
       </div>
       <div class="modal-body">
         <table id="deviceTable" class="table table-striped">
-        <thead><tr><td>Название</td><td></td><td>Состояние</td></tr></thead>
+        <thead><tr><td>Название</td><td></td><td>Состояние</td><td>Действие</td><td>Удалить</td></tr></thead>
         <tbody id="clients">
         </tbody>
         </table>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-success" onclick="deleteDisconnected()">Запуск расчета по текущей схеме</button>
+        <input type="text" class="form-control" id="schemeName" placeholder="имя_схемы" onKeyDown="checkSchemeName(this.value)", onKeyUp="checkSchemeName(this.value)">
+        <button type="button" id="schemeInstallButton" class="btn btn-success" onclick="installScheme(0)">Установить схему</button>
       </div>
     </div>
   </div>

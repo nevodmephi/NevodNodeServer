@@ -4,7 +4,8 @@ var http = require("http"),
     net = require('net'),
     io = require("socket.io"),
     express = require("express"),
-    fs = require("fs")
+    fs = require("fs"),
+    vm = require("vm")
 
 var state = 0;
 var schemes = [];
@@ -86,6 +87,12 @@ io.sockets.on('connection', function (socket) {
     stopScheme(socket,data.name);
   })
 
+  var handshakeData = new Array();
+  for(var i in schemes) {
+    handshakeData.push({name: schemes[i].name,status: schemes[i].status})
+  }
+  socket.emit('handshake',handshakeData);
+
 });
 
 function installScheme(socket,scheme) {
@@ -104,10 +111,10 @@ function installScheme(socket,scheme) {
     status: "stopped",
     name: scheme.name,
     errors: 0,
-    blocks: scheme   
+    blocks: scheme.blocks
   }
   schemes.push(newScheme);
-  socket.emit('scheme-installed');
+  io.sockets.emit('scheme-installed',{name: scheme.name});
   return true;
 }
 
@@ -115,11 +122,12 @@ function removeScheme(socket,name) {
   for(var i in schemes) {
     if(name == schemes[i].name) {
       schemes.splice(i);
-      socket.emit('scheme-removed',{});
+      io.sockets.emit('scheme-removed',{name: name});
       return true;
     }    
   }
   return false;
+
 }
 
 function downloadScheme(socket,name) {
@@ -138,12 +146,20 @@ function downloadScheme(socket,name) {
 function runScheme(socket,name) {
   for(var i in schemes) {
     if(name == schemes[i].name) {
+      if(schemes[i].vmc == undefined) {
+        schemes[i].vmc = "";
+      }
+      for(var j in schemes[i].blocks) {
+        schemes[i].vmc += parseCode(schemes[i].blocks[j].code,schemes[i].blocks[i].id,schemes[i].blocks[j].connects) + "\n\n\n";  
+      }
+      schemes[i].vm = new vm.createContext(kernel());      
+      vm.runInContext(schemes[i].vmc,schemes[i].vm);
       if(schemes[i].errors == 0) {
         schemes[i].status = "stable working";
       } else {
         schemes[i].status = "unstable working";
       }
-      socket.emit('scheme-ran',{});
+      io.sockets.emit('scheme-ran',{});
       return true;
     }    
   }
@@ -154,7 +170,7 @@ function pauseScheme(socket,name) {
   for(var i in schemes) {
     if(name == schemes[i].name) {
       schemes[i].status = "paused";
-      socket.emit('scheme-paused',{});
+      io.sockets.emit('scheme-paused',{});
       return true;
     }    
   }
@@ -167,14 +183,34 @@ function stopScheme(socket,name) {
       if(schemes[i].vms !== undefined) {delete schemes[i].vms;};
       if(schemes[i].data !== undefined) {delete schemes[i].data;};      
       schemes[i].status = "stopped";
-      socket.emit('scheme-stopped',{});
+      io.sockets.emit('scheme-stopped',{});
       return true;
     }    
   }
   return false;  
 }
 
-// TCP Server for data
+function parseCode(code,block,connections) {
+  c = code;
+  c = c.split("push(").join("push(" + connections.toString() + ",");
+  c = c.split("ondata(").join("ondata(" + block + ",");
+  return c;
+}
 
-
-console.log("TCP server started @ http://localhost:5001/");
+function kernel() {
+  var k = new Object();
+  k.log = function(text) {
+    console.log(text);
+  }
+  k.sin = Math.sin;
+  k.cos = Math.cos;
+  k.push = function(blocks,data) {
+    for(var i in blocks) {
+      k[blocks[i]] = data;
+    } 
+  }
+  k.ondata = function(__THISBLOCK,callback) {
+    k.__defineSetter__(__THISBLOCK,callback(data));
+  }
+  return k;
+}
