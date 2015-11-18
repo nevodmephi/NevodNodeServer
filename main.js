@@ -152,14 +152,14 @@ function runScheme(socket,name) {
       for(var j in schemes[i].blocks) {
         schemes[i].vmc += parseCode(schemes[i].blocks[j].code,schemes[i].blocks[i].id,schemes[i].blocks[j].connects) + "\n\n\n";  
       }
-      schemes[i].vm = new vm.createContext(kernel());      
+      schemes[i].vm = new vm.createContext(kernel(socket,schemes[i].name));      
       vm.runInContext(schemes[i].vmc,schemes[i].vm);
       if(schemes[i].errors == 0) {
         schemes[i].status = "stable working";
       } else {
         schemes[i].status = "unstable working";
       }
-      io.sockets.emit('scheme-ran',{});
+      io.sockets.emit('scheme-ran',{name: name, status: schemes[i].status});
       return true;
     }    
   }
@@ -197,7 +197,7 @@ function parseCode(code,block,connections) {
   return c;
 }
 
-function kernel() {
+function kernel(socket,name) {
   var k = new Object();
   k.log = function(text) {
     console.log(text);
@@ -211,6 +211,9 @@ function kernel() {
   }
   k.ondata = function(__THISBLOCK,callback) {
     k.__defineSetter__(__THISBLOCK,callback(data));
+  }
+  k.finish = function() {
+    io.sockets.emit("scheme-finished",);
   }
   return k;
 }
