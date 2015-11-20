@@ -29,7 +29,7 @@ var io = io.listen(server);
 console.log("Socket server started @ http://localhost:"+app.get('port')+"/");
 
 io.sockets.on('connection', function (socket) {
-
+	console.log('web client connected');
   socket.on('scheme-install', function (data) {
     installScheme(socket,data.scheme);
   });

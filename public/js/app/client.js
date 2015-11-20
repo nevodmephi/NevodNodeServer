@@ -261,7 +261,7 @@ function bufToString(b) {
 
 function main() {
   var schemeDiv = $('#statemachine-demo'); //document.getElementById("statemachine-demo");
-  socket = io.connect(':8889');
+  socket = io();
   socket.on('event', function (data) {
     if(data.data.length == 4) {  
     	$('#' + data.ip + "-prefix").html(bufToString(data.data));      
