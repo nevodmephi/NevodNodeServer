@@ -115,8 +115,14 @@ function runScheme(socket,name) {
       for(var j in schemes[i].blocks) {
         schemes[i].vmc += parseCode(schemes[i].blocks[j].code,schemes[i].blocks[i].id,schemes[i].blocks[j].connects) + "\n\n\n";  
       }
-      schemes[i].vm = new vm.createContext(kernel(socket,schemes[i].name));      
-      vm.runInContext(schemes[i].vmc,schemes[i].vm);
+      try {
+        schemes[i].vm = new vm.createContext(kernel(socket,schemes[i].name));      
+        vm.runInContext(schemes[i].vmc,schemes[i].vm);
+      } catch (e) {
+        schemes[i].status = "dead";
+        io.sockets.emit('scheme-dead',{name: name});
+        return false;
+      }
       if(schemes[i].errors == 0) {
         schemes[i].status = "stable working";
       } else {
@@ -146,7 +152,7 @@ function stopScheme(socket,name) {
       if(schemes[i].vms !== undefined) {delete schemes[i].vms;};
       if(schemes[i].data !== undefined) {delete schemes[i].data;};      
       schemes[i].status = "stopped";
-      io.sockets.emit('scheme-stopped',{});
+      io.sockets.emit('scheme-stopped',{name: name});
       return true;
     }    
   }
@@ -156,12 +162,14 @@ function stopScheme(socket,name) {
 function parseCode(code,block,connections) {
   c = code;
   c = c.split("push(").join("push(" + connections.toString() + ",");
-  c = c.split("ondata(").join("ondata(" + block + ",");
+  c = c.split("ondata(").join("ondata(\"" + block + "\",");
   return c;
 }
 
 function kernel(socket,name) {
   var k = new Object();
+  var k.Shared = new Object();
+  var k.System = new Object();
   k.log = function(text) {
     console.log(text);
   }
@@ -178,5 +186,21 @@ function kernel(socket,name) {
   k.finish = function() {
     io.sockets.emit("scheme-finished");
   }
+  k.Shared.readFile = function(path) {
+    var f = undefined;
+    try {
+      f = fs.readFileSync("resources/shared/" + path);
+    } catch (e) {
+      k.raiseError();
+    }
+    return f;
+  }
+  k.System.raiseError() = function() {
+    for(var i in schemes) {
+      if(schemes[i].name == name) {
+        schemes[i].errors++;
+      }
+    }
+  };
   return k;
 }

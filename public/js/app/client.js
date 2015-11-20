@@ -285,16 +285,22 @@ function main() {
 
     socket.on('handshake',function(data) {
         for(var i in data) {
-            $('#clients').append('<tr class="scheme-status-string scheme-' + data[i].name +'"><td class="scheme-status-string"><button class="btn btn-link btn-xs">' + data[i].name + '</button><td><td id="scheme-status-' + data[i].name + '">' + data[i].status + '</td><td><button class="btn btn-default btn-xs" onclick=""><span class="glyphicon glyphicon-stop" aria-hidden="true"></span></button>&nbsp;<button class="btn btn-default btn-xs" onclick=""><span class="glyphicon glyphicon-pause" aria-hidden="true"></span></button>&nbsp;<button class="btn btn-default btn-xs" onclick="playScheme(\'' + data.name + '\')"><span class="glyphicon glyphicon-play" aria-hidden="true"></span></button></td><td><button onclick="removeScheme(\'' + data[i].name + '\')" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button></td></tr>');                
+            $('#clients').append('<tr class="scheme-status-string scheme-' + data[i].name +'"><td class="scheme-status-string"><button class="btn btn-link btn-xs">' + data[i].name + '</button><td><td id="scheme-status-' + data[i].name + '">' + data[i].status + '</td><td><button class="btn btn-default btn-xs" onclick=""><span class="glyphicon glyphicon-stop" aria-hidden="true"></span></button>&nbsp;<button class="btn btn-default btn-xs" onclick=""><span class="glyphicon glyphicon-pause" aria-hidden="true"></span></button>&nbsp;<button class="btn btn-default btn-xs" onclick="playScheme(\'' + data[i].name + '\')"><span class="glyphicon glyphicon-play" aria-hidden="true"></span></button></td><td><button onclick="removeScheme(\'' + data[i].name + '\')" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button></td></tr>');                
         }             
     })
     
     socket.on('scheme-installed', function(data) {
         $('#clients').append('<tr class="scheme-status-string scheme-' + data.name +'"><td class="scheme-status-string"><button class="btn btn-link btn-xs">' + data.name + '</button><td><td id="scheme-status-' + data.name + '">installed</td><td><button class="btn btn-default btn-xs" onclick=""><span class="glyphicon glyphicon-stop" aria-hidden="true"></span></button>&nbsp;<button class="btn btn-default btn-xs" onclick=""><span class="glyphicon glyphicon-pause" aria-hidden="true"></span></button>&nbsp;<button class="btn btn-default btn-xs" onclick="playScheme(\'' + data.name + '\')"><span class="glyphicon glyphicon-play" aria-hidden="true"></span></button></td><td><button onclick="removeScheme(\'' + data.name + '\')" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button></td></tr>');        
+        $(".scheme-status-" + data.name).addClass("info");
     });
 
     socket.on('scheme-ran', function(data) {
         document.getElementById('scheme-status-' + data.name).innerHTML = data.status;
+    })
+
+    socket.on('scheme-dead', function(data) {
+        document.getElementById('scheme-status-' + data.name).innerHTML = "dead";
+        $(".scheme-" + data.name).addClass("danger");
     })
 
     socket.on('scheme-removed', function(data) {
