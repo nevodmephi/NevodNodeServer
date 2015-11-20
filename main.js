@@ -1,5 +1,4 @@
-var http = require("http"),
-    url = require("url"),
+var url = require("url"),
     path = require("path"),
     net = require('net'),
     io = require("socket.io"),
@@ -15,55 +14,19 @@ var STR = [
   "Такая схема уже существует: "
 ]
 
-http.createServer(function(request, response) {
-
-  var uri = url.parse(request.url).pathname
-    , filename = path.join(process.cwd(), uri);
-
-  var contentTypesByExtension = {
-    '.html': "text/html",
-    '.css':  "text/css",
-    '.js':   "text/javascript"
-  };
-
-  path.exists(filename, function(exists) {
-    if(!exists) {
-      response.writeHead(404, {"Content-Type": "text/plain"});
-      response.write("404 Not Found\n");
-      response.end();
-      return;
-    }
-
-    if (fs.statSync(filename).isDirectory()) filename += '/index.html';
-
-    fs.readFile(filename, "binary", function(err, file) {
-      if(err) {        
-        response.writeHead(500, {"Content-Type": "text/plain"});
-        response.write(err + "\n");
-        response.end();
-        return;
-      }
-
-      c = {"a": 4,"b": 5};
-      
-      var headers = {};
-      var contentType = contentTypesByExtension[path.extname(filename)];
-      if (contentType) headers["Content-Type"] = contentType;
-      response.writeHead(200, headers);
-      response.write(file, "binary");
-      response.end();
-    });
-  });
-}).listen(80);
-
-console.log("HTTP Server started @ http://localhost:" + 80 + "/");
-
 var app = express();
-var server = http.createServer(app);
+var port = (process.env.PORT || 80);
+app.set('port',port);
+app.use(express.static(__dirname + '/public'));
+app.get('/', function(req,res){
+	res.sendFile(__dirname + '/public/index.html');
+});
+var server = app.listen(app.get('port'),function(){
+	console.log('node app is running on port', app.get('port'));
+})
 var io = io.listen(server);
-server.listen(8889);
 
-console.log("Socket server started @ http://localhost:8889/");
+console.log("Socket server started @ http://localhost:"+app.get('port')+"/");
 
 io.sockets.on('connection', function (socket) {
 
@@ -213,7 +176,7 @@ function kernel(socket,name) {
     k.__defineSetter__(__THISBLOCK,callback(data));
   }
   k.finish = function() {
-    io.sockets.emit("scheme-finished",);
+    io.sockets.emit("scheme-finished");
   }
   return k;
 }
