@@ -15,6 +15,10 @@ var oscRec = false;
 var oscPlay = true;
 var logPlay = true;
 
+var deadSchemes = 0;
+var warningSchemes = 0;
+var normalSchemes = 0;
+
 var colors = ["#FF6600", "#330099", "#FFCC00", "#CC0000", "#339900", "#CC3333", "#996600", "#CC00FF", "#0066CC","#6600CC","#FF6699","#00CC99","#FF6666","#666699","#CCFF33","#999966"];
 var colorIt = -1;
 
@@ -284,26 +288,71 @@ function main() {
   });
 
     socket.on('handshake',function(data) {
+        deadSchenes = 0;
+        warningSchemes = 0;
         for(var i in data) {
-            $('#clients').append('<tr class="scheme-status-string scheme-' + data[i].name +'"><td class="scheme-status-string"><button class="btn btn-link btn-xs">' + data[i].name + '</button><td><td id="scheme-status-' + data[i].name + '">' + data[i].status + '</td><td><button class="btn btn-default btn-xs" onclick=""><span class="glyphicon glyphicon-stop" aria-hidden="true"></span></button>&nbsp;<button class="btn btn-default btn-xs" onclick=""><span class="glyphicon glyphicon-pause" aria-hidden="true"></span></button>&nbsp;<button class="btn btn-default btn-xs" onclick="playScheme(\'' + data[i].name + '\')"><span class="glyphicon glyphicon-play" aria-hidden="true"></span></button></td><td><button onclick="removeScheme(\'' + data[i].name + '\')" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button></td></tr>');                
-        }             
+            switch(data[i].status) {
+                case "dead":
+                    deadSchemes++;
+                    break;
+                case "unstable working":
+                    warningSchemes++;
+                    break;
+                default:
+                    normalSchemes++;
+                    break;
+            }
+            $('#clients').append('<tr class="scheme-status-string scheme-' + data[i].name +'"><td class="scheme-status-string"><button class="btn btn-link btn-xs download-scheme-' + data[i].name + '" onclick="downloadScheme(\'' + data[i].name + '\')">' + data[i].name + '</button><td><td id="scheme-status-' + data[i].name + '">installed</td><td><div class="btn-group" data-toggle="buttons"><label class="btn btn-default btn-xs active stop-scheme-' + data[i].name + '" onclick="stopScheme(\'' + data[i].name + '\')"><input type="radio" autocomplete="off" checked><span class="glyphicon glyphicon-stop" aria-hidden="true"></span></label>&nbsp;<label class="btn btn-default btn-xs pause-scheme-' + data[i].name + '" onclick=""><input type="radio" autocomplete="off"><span class="glyphicon glyphicon-pause" aria-hidden="true"></span></label>&nbsp;<label class="btn btn-default btn-xs play-scheme-' + data[i].name + '" onclick="playScheme(\'' + data[i].name + '\')"><input type="radio" autocomplete="off" checked><span class="glyphicon glyphicon-play" aria-hidden="true"></span></label></div></td><td><button onclick="removeScheme(\'' + data[i].name + '\')" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button></td></tr>');        
+        }                
+        updateStatus();
     })
     
     socket.on('scheme-installed', function(data) {
-        $('#clients').append('<tr class="scheme-status-string scheme-' + data.name +'"><td class="scheme-status-string"><button class="btn btn-link btn-xs">' + data.name + '</button><td><td id="scheme-status-' + data.name + '">installed</td><td><button class="btn btn-default btn-xs" onclick=""><span class="glyphicon glyphicon-stop" aria-hidden="true"></span></button>&nbsp;<button class="btn btn-default btn-xs" onclick=""><span class="glyphicon glyphicon-pause" aria-hidden="true"></span></button>&nbsp;<button class="btn btn-default btn-xs" onclick="playScheme(\'' + data.name + '\')"><span class="glyphicon glyphicon-play" aria-hidden="true"></span></button></td><td><button onclick="removeScheme(\'' + data.name + '\')" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button></td></tr>');        
-        $(".scheme-status-" + data.name).addClass("info");
+        $('#clients').append('<tr class="scheme-status-string scheme-' + data.name +'"><td class="scheme-status-string"><button class="btn btn-link btn-xs download-scheme-' + data.name + '" onclick="downloadScheme(\'' + data.name + '\')">' + data.name + '</button><td><td id="scheme-status-' + data.name + '">installed</td><td><div class="btn-group" data-toggle="buttons"><label class="btn btn-default btn-xs active stop-scheme-' + data.name + '" onclick="stopScheme(\'' + data.name + '\')"><input type="radio" autocomplete="off" checked><span class="glyphicon glyphicon-stop" aria-hidden="true"></span></label>&nbsp;<label class="btn btn-default btn-xs pause-scheme-' + data.name + '" onclick=""><input type="radio" autocomplete="off"><span class="glyphicon glyphicon-pause" aria-hidden="true"></span></label>&nbsp;<label class="btn btn-default btn-xs play-scheme-' + data.name + '" onclick="playScheme(\'' + data.name + '\')"><input type="radio" autocomplete="off" checked><span class="glyphicon glyphicon-play" aria-hidden="true"></span></label></div></td><td><button onclick="removeScheme(\'' + data.name + '\')" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button></td></tr>');        
+        normalSchemes++;
     });
 
     socket.on('scheme-ran', function(data) {
         document.getElementById('scheme-status-' + data.name).innerHTML = data.status;
+        switch(data.status) {
+            case "stable working":
+                $(".scheme-" + data.name).removeClass("danger");
+                $(".scheme-" + data.name).removeClass("warning");
+                $(".scheme-" + data.name).removeClass("success");
+                $(".scheme-" + data.name).addClass("info");
+                break;
+            case "unstable working":
+                $(".scheme-" + data.name).removeClass("danger");
+                $(".scheme-" + data.name).removeClass("success");
+                $(".scheme-" + data.name).addClass("info");
+                $(".scheme-" + data.name).addClass("warning");
+                warningSchemes++;
+                break;
+        }
+        $(".play-scheme-" + data.name).button('toggle');
     })
 
     socket.on('scheme-dead', function(data) {
-        document.getElementById('scheme-status-' + data.name).innerHTML = "dead";
+        document.getElementById('scheme-status-' + data.name).innerHTML = "<span title='" + data.error + "'>dead</span>";
+        $(".scheme-" + data.name).removeClass("warning");
+        $(".scheme-" + data.name).removeClass("success");
         $(".scheme-" + data.name).addClass("danger");
+        $(".stop-scheme-" + data.name).button('toggle');
+        deadSchemes++;
+        updateStatus();
+    })
+
+    socket.on('scheme-stopped', function(data) {
+        document.getElementById('scheme-status-' + data.name).innerHTML = "stopped";
+        $(".scheme-" + data.name).removeClass("warning");
+        $(".scheme-" + data.name).removeClass("success");
+        $(".scheme-" + data.name).removeClass("info");
+        $(".stop-scheme-" + data.name).button('toggle');        
     })
 
     socket.on('scheme-removed', function(data) {
+        if(document.getElementById('scheme-status-' + data.name).innerHTML == "dead") deadSchemes--;
+        if(document.getElementById('scheme-status-' + data.name).innerHTML == "unstable working") warningSchemes--;
         $('.scheme-' + data.name).each(function (idx, elem) {
             $(elem).remove();
         });
@@ -312,11 +361,42 @@ function main() {
     socket.on('scheme-wrong', function(data) {
         alert(0);
     })
+
+    socket.on('quick-view', function(data) {
+        var options = {
+            series: {
+                lines: {
+                    show: true,
+                    fill: false,
+                    fillColor: { colors: [{ opacity: 0.7 }, { opacity: 0.1}] }
+                }
+            },
+            colors: ["#FF6600", "#330099", "#FFCC00", "#CC0000", "#339900", "#CC3333", "#996600", "#CC00FF", "#0066CC","#6600CC","#FF6699","#00CC99","#FF6666","#666699","#CCFF33","#999966"],
+            grid: {
+                hoverable: true
+            }       
+        }
+        oscScreen = $.plot($("#oscilloscope"), data, options);
+    })
 }
 
 function getRandomInt(min, max)
 {
   return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function updateStatus() {
+    if(warningSchemes>0) {
+        document.getElementById("schemesStatus").innerHTML = "!";
+        document.getElementById("schemesStatus").className = "btn navbar-btn btn-xs btn-warning";     
+    }
+    if(deadSchemes>0) {
+        document.getElementById("schemesStatus").innerHTML = "!";
+        document.getElementById("schemesStatus").className = "btn navbar-btn btn-xs btn-danger";  
+        return 0;
+    }
+    document.getElementById("schemesStatus").innerHTML = "⊥";
+    document.getElementById("schemesStatus").className = "btn navbar-btn btn-xs btn-info";
 }
 
 function parseScheme() {
@@ -350,6 +430,10 @@ function parseScheme() {
     return scheme;
 }
 
+function downloadScheme(name) {
+    // cgh
+}
+
 function checkSchemeName(n) {
     var flag = false;
     $('.scheme-status-string').each(function (idx, elem) {
@@ -372,6 +456,10 @@ function removeScheme(a) {
 
 function playScheme(a) {
     socket.emit('scheme-run',{name: a});
+}
+
+function stopScheme(a) {
+    socket.emit('scheme-stop',{name: a});    
 }
 
 function initOsc() {

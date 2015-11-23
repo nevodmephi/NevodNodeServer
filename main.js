@@ -4,7 +4,8 @@ var url = require("url"),
     io = require("socket.io"),
     express = require("express"),
     fs = require("fs"),
-    vm = require("vm")
+    vm = require("vm"),
+    uran = require("./uran.js")
 
 var state = 0;
 var schemes = [];
@@ -22,14 +23,13 @@ app.get('/', function(req,res){
 	res.sendFile(__dirname + '/public/index.html');
 });
 var server = app.listen(app.get('port'),function(){
-	console.log('node app is running on port', app.get('port'));
+	//console.log('node app is running on port', app.get('port'));
 })
 var io = io.listen(server);
 
 console.log("Socket server started @ http://localhost:"+app.get('port')+"/");
 
 io.sockets.on('connection', function (socket) {
-	console.log('web client connected');
   socket.on('scheme-install', function (data) {
     installScheme(socket,data.scheme);
   });
@@ -55,6 +55,7 @@ io.sockets.on('connection', function (socket) {
     handshakeData.push({name: schemes[i].name,status: schemes[i].status})
   }
   socket.emit('handshake',handshakeData);
+  console.log("[H] " + socket.handshake.address);
 
 });
 
@@ -89,6 +90,7 @@ function removeScheme(socket,name) {
       return true;
     }    
   }
+
   return false;
 
 }
@@ -112,15 +114,17 @@ function runScheme(socket,name) {
       if(schemes[i].vmc == undefined) {
         schemes[i].vmc = "";
       }
+      //console.log(schemes[i]);
       for(var j in schemes[i].blocks) {
-        schemes[i].vmc += parseCode(schemes[i].blocks[j].code,schemes[i].blocks[i].id,schemes[i].blocks[j].connects) + "\n\n\n";  
+        schemes[i].vmc += parseCode(schemes[i].blocks[j].code,schemes[i].blocks[j].id,schemes[i].blocks[j].connects) + "\n\n\n";  
       }
+      //console.log(schemes[i].vmc);
       try {
         schemes[i].vm = new vm.createContext(kernel(socket,schemes[i].name));      
         vm.runInContext(schemes[i].vmc,schemes[i].vm);
       } catch (e) {
         schemes[i].status = "dead";
-        io.sockets.emit('scheme-dead',{name: name});
+        io.sockets.emit('scheme-dead',{name: name, error: e.toString()});
         return false;
       }
       if(schemes[i].errors == 0) {
@@ -149,7 +153,7 @@ function pauseScheme(socket,name) {
 function stopScheme(socket,name) {
   for(var i in schemes) {
     if(name == schemes[i].name) {
-      if(schemes[i].vms !== undefined) {delete schemes[i].vms;};
+      if(schemes[i].vmc !== undefined) {delete schemes[i].vmc;};
       if(schemes[i].data !== undefined) {delete schemes[i].data;};      
       schemes[i].status = "stopped";
       io.sockets.emit('scheme-stopped',{name: name});
@@ -161,27 +165,30 @@ function stopScheme(socket,name) {
 
 function parseCode(code,block,connections) {
   c = code;
-  c = c.split("push(").join("push(" + connections.toString() + ",");
-  c = c.split("ondata(").join("ondata(\"" + block + "\",");
+  c = c.split("System.push(").join("System.push(" + JSON.stringify(connections) + ",");
+  c = c.split("System.ondata(").join("System.ondata(\"" + block + "\",");
   return c;
 }
 
 function kernel(socket,name) {
   var k = new Object();
-  var k.Shared = new Object();
-  var k.System = new Object();
+  k.Shared = new Object();
+  k.System = new Object();
+  k.Uran = new Object();
+  k.Stat = new Object();
+  k.Online = new Object();
   k.log = function(text) {
     console.log(text);
   }
   k.sin = Math.sin;
   k.cos = Math.cos;
-  k.push = function(blocks,data) {
+  k.System.push = function(blocks,data) {
     for(var i in blocks) {
       k[blocks[i]] = data;
     } 
   }
-  k.ondata = function(__THISBLOCK,callback) {
-    k.__defineSetter__(__THISBLOCK,callback(data));
+  k.System.ondata = function(__THISBLOCK,callback) {
+    k.__defineSetter__(__THISBLOCK,callback);
   }
   k.finish = function() {
     io.sockets.emit("scheme-finished");
@@ -195,12 +202,36 @@ function kernel(socket,name) {
     }
     return f;
   }
-  k.System.raiseError() = function() {
+  k.System.raiseError = function() {
     for(var i in schemes) {
       if(schemes[i].name == name) {
         schemes[i].errors++;
       }
     }
   };
+  k.System.thread = function(offset,callback) {
+    setTimeout(callback,offset);
+  }
+  k.Uran.parse100Mhz = function(path,callback) {
+    uran.parseBinaryFile(fs.readFileSync(path),"100Mhz_notail",callback);
+  }
+  k.Stat.histogram = function(signal,from,to,bars) {
+    var r = [];
+    w = (to-from)/bars;
+    for(var i=0;i<bars;i++) r[i]=0;
+    for(var i in signal) {
+      for(var j=0;j<bars;j++) {
+        if((signal[i]>=from+j*w)&&(signal[i]<from+(j+1)*w)) {
+          r[j]++;
+        }  
+      }
+    }
+    for(var i in r) r[i] = [from+i*w,r[i]];
+    return r;
+  }
+  k.Online.quickView = function(data) {
+    io.sockets.emit('quick-view',data);
+  }
+
   return k;
 }
