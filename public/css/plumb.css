@@ -201,3 +201,9 @@ tr.log-string:hover {
     width: 10em;
     display: inline-block;
 }
+
+.file-input {
+    font-size: 10pt !important;
+    width: auto !important;
+    display: inline-block !important;
+}

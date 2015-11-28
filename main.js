@@ -213,7 +213,10 @@ function kernel(socket,name) {
     setTimeout(callback,offset);
   }
   k.Uran.parse100Mhz = function(path,callback) {
-    uran.parseBinaryFile(fs.readFileSync(path),"100Mhz_notail",callback);
+    //uran.parseBinaryFile(fs.readFileSync(path),"100Mhz_notail",callback);
+    fs.readFile(path,function(err,data) {
+      uran.parseBinaryFile(data,"100Mhz_notail",callback);
+    });
   }
   k.Stat.histogram = function(signal,from,to,bars) {
     var r = [];
@@ -229,8 +232,8 @@ function kernel(socket,name) {
     for(var i in r) r[i] = [from+i*w,r[i]];
     return r;
   }
-  k.Online.quickView = function(data) {
-    io.sockets.emit('quick-view',data);
+  k.Online.quickView = function(data,legend,axes,type) {
+    io.sockets.emit('quick-view',{data: data,legend: legend, axes: axes,type:type});
   }
 
   return k;

@@ -179,12 +179,20 @@ function newBlock(type) {
     var hd;
     var ap; var bp; var gp;
 
+    newAddonPanelHeadingFile = document.createElement('input');
+    newAddonPanelHeadingFile.type = "file";
+    newAddonPanelHeadingFile.className = "file-input";
+    newAddonPanelHeadingFile.title = "block" + curid;
+    newAddonPanelHeadingFile.setAttribute("onchange","readSingleFile(event,this)");  
+
     newAddonPanelHeadingHeader.innerHTML = "&nbsp;" + hd;
 
     newAddonPanelHeading.appendChild(newAddonPanelHeadingButton);
     newAddonPanelHeading.appendChild(newAddonPanelSettingsButton);
-    newAddonPanelHeading.appendChild(newAddonPanelHeadingHeader);
+    newAddonPanelHeading.appendChild(newAddonPanelHeadingFile);
+    //newAddonPanelHeading.appendChild(newAddonPanelHeadingHeader);
     newAddonPanelHeading.appendChild(newAddonPanelDeleteButton);
+
     newAddonPanel.appendChild(newAddonPanelHeading);
 
     newAddon.style.left = document.body.scrollLeft + window.innerWidth/2 - 300/2 + getRandomInt(-25,25) +"px";
@@ -242,6 +250,68 @@ function newBlock(type) {
     newAddonPanelDeleteButton.setAttribute('onclick','jsPlumb.detachAllConnections("block' + curid + '");jsPlumb.empty("block' + curid + '")');
     newAddonPanelSettingsButton.setAttribute('onclick','flipMode(document.getElementById("block' + curid + '-editor")._dom)');
     curid++;
+}
+
+var plotList = function(data,legendName,axesName,graphType){
+    var plot_data = [];
+    for (var i=0;i<data.length;i++) {
+        var pd = data[i];
+        if(!Array.isArray(pd[0])) {
+            var newData = [];
+            for (j=0;j<pd.length;j++){
+                newData.push([j+1,pd[j]]);
+            }
+            plot_data.push({label:legendName[i],data:newData});
+        } else { plot_data.push({label:legendName[i],data:pd}); }
+    }
+    data=[];
+    var options = {};
+    if (legendName.length!=0){
+        options.legend = {
+            show:true,
+            labelBoxBorderColor:"black",
+            position:"ne",
+            backgroundColor: "gray",
+            backgroundOpacity: 0.5,
+            noColumns: 1
+        };
+    }
+    if(axesName.length!=0){
+        options.axisLabels = {show:true};
+        options.xaxes = [{axisLabel:axesName[0]}];
+        options.yaxes = [{axisLabel:axesName[1]}];
+    }
+    switch (graphType) {
+        case "dots": 
+            options.series = {points: {show: true,radius: 5}};
+            break;
+        case "dotsLines":
+            options.series = {points: {show: true, radius: 5},lines: {show:true}};
+            break;
+        case "lines":
+            options.series = {lines: {show:true}};
+            break;
+        case "bar":
+            options.series = { bars: { show: true } };
+            break;
+        default: 
+            options.series = {lines: {show:true}};
+            break;
+    }
+    oscScreen = $.plot($("#oscilloscope"), plot_data, options);
+};
+
+function readSingleFile(e,sender) {
+  var file = e.target.files[0];
+  if (!file) {
+    return;
+  }
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var contents = e.target.result;
+    document.getElementById(sender.title + "-editor")._dom.setValue(contents);
+  };
+  reader.readAsText(file);
 }
 
 function flipMode(editor) {
@@ -363,20 +433,7 @@ function main() {
     })
 
     socket.on('quick-view', function(data) {
-        var options = {
-            series: {
-                lines: {
-                    show: true,
-                    fill: false,
-                    fillColor: { colors: [{ opacity: 0.7 }, { opacity: 0.1}] }
-                }
-            },
-            colors: ["#FF6600", "#330099", "#FFCC00", "#CC0000", "#339900", "#CC3333", "#996600", "#CC00FF", "#0066CC","#6600CC","#FF6699","#00CC99","#FF6666","#666699","#CCFF33","#999966"],
-            grid: {
-                hoverable: true
-            }       
-        }
-        oscScreen = $.plot($("#oscilloscope"), data, options);
+        plotList(data.data,data.legend,data.axes,data.type)
     })
 }
 
