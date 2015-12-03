@@ -3,7 +3,7 @@ var fs = require("fs");
 //file formats: 100Mhz_notail, 200Mhz_notail, 200Mhz_tail
 //hf (header format): 24b_f,  40b_f
 
-var l_100_data = 1024*12*2; //main data length for 100 MHz, no tail 
+var l_100_data = 2048*12*2; //main data length for 100 MHz, no tail 
 var l_24_header = 24; //24 bytes header length, no tail 
 var l_notail_ending = 4; //ending for no tail data 
 
@@ -12,7 +12,7 @@ var notail_ending = 'ffffffff';
 module.exports = {
 	parseBinaryFile: function(data,format,callback){
 		var fileformat = {};
-		if (data == undefined) {console.log("no data"); return; }
+		if (data == undefined) {console.log("parser, no data"); return; }
 		switch (format) {
 			case "100Mhz_notail":
 				fileformat.l_data = l_100_data;
@@ -22,36 +22,38 @@ module.exports = {
 				fileformat.packagelength = l_100_data+l_24_header+l_notail_ending;
 				fileformat.ending = notail_ending;
 				fileformat.hf = "24b_f"
+				fileformat.sig_type = "100Mhz_signal"
 				break;
 			default:
-				console.log("wrong format");
+				console.log("parser, wrong format");
 				return;
 		}
 		var packages = [];
 		while (data.length >= fileformat.packagelength) {
 			var ending = data.slice(data.length-fileformat.l_ending,data.length);
-			// console.log(data.length)
 			if (ending.toString('hex')==fileformat.ending){
 				var header = data.slice(data.length-fileformat.packagelength,data.length-fileformat.packagelength+fileformat.l_header);
 				var p_data = data.slice(data.length-fileformat.l_data-fileformat.l_ending,data.length-fileformat.l_ending);
-				// console.log("hello")
 				var packageObj = {
-					type: "100Mhz_signal",
-					signal: parsePackageData(p_data),
-					time: parseHeader(header,fileformat.hf)
+					type:fileformat.sig_type,
+					signal:parsePackageData(p_data),
+					time:parseHeader(header,fileformat.hf)
 				}
 				packages.push(packageObj);
-				// console.log(packages.length)
 				if (data.length == fileformat.packagelength) { data = new Buffer(0) };
 				data = data.slice(0,data.length-fileformat.packagelength);
-				// console.log(data.length)
-
 			} else {
-
+				data = data.slice(0,data.length-1);
 			}
 		}
-		//console.log(packages[1].p_header);
-		callback(packages);
+		if(data.length!=0){
+			console.log("WARN, wrong package, issue in parser");
+			// callback(packages,data);
+			return packages
+		} else {
+			return packages
+			// callback(packages);
+		}
 	}
 }
 
@@ -91,7 +93,7 @@ var parseHeader = function(header,hf) {
 			return timeString;
 			break;
 		default:
-			console.log("wrong header format");
+			console.log("parser, wrong header format");
 	}
 }
 

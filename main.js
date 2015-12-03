@@ -4,6 +4,7 @@ var url = require("url"),
     io = require("socket.io"),
     express = require("express"),
     fs = require("fs"),
+    stream = require("stream"),
     vm = require("vm"),
     uran = require("./uran.js")
 
@@ -213,9 +214,25 @@ function kernel(socket,name) {
     setTimeout(callback,offset);
   }
   k.Uran.parse100Mhz = function(path,callback) {
-    //uran.parseBinaryFile(fs.readFileSync(path),"100Mhz_notail",callback);
-    fs.readFile(path,function(err,data) {
-      uran.parseBinaryFile(data,"100Mhz_notail",callback);
+    fs.open(path,"r",function(status,fd){
+      if(status){console.log(status.message);return;}
+      var length = fs.statSync(path).size,
+        chunk_l = 49180*100,
+        buffer = new Buffer(chunk_l),
+        lim = (length/chunk_l)+1;
+      var packages=[];
+      for(var i=1;i<=lim;i++){
+        var pos = length - chunk_l*i;
+        if (pos<0) {
+          chunk_l= length - chunk_l*(i-1);
+          buffer = new Buffer(chunk_l);
+          pos = 0;
+        }
+        fs.readSync(fd,buffer,0,chunk_l,pos);
+        var pack = uran.parseBinaryFile(buffer,"100Mhz_notail");
+        packages = packages.concat(pack);
+      }
+      callback(packages);
     });
   }
   k.Stat.histogram = function(signal,from,to,bars) {
