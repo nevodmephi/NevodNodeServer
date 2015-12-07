@@ -1,3 +1,4 @@
+
 # README FOR URAN PROJECT#
 
 This README would normally document whatever steps are necessary to get your application up and running.
@@ -20,9 +21,8 @@ This README would normally document whatever steps are necessary to get your app
 Для запуска сервера необходимо выполнить в отдельном окне терминала команду:
 
 ```
-#!mongod
-
-
+#!shell
+mongod
 ```
 
 После запуска сервера mongodb, необходимо открыть еще одно окно терминала и выполнить команду
