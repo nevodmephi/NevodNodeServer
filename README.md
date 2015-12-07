@@ -1,4 +1,3 @@
-
 # README FOR URAN PROJECT#
 
 This README would normally document whatever steps are necessary to get your application up and running.
@@ -26,7 +25,12 @@ mongod
 ```
 
 После запуска сервера mongodb, необходимо открыть еще одно окно терминала и выполнить команду
-	<p>mongo</p>
+
+```
+#!shell
+mongod
+```
+
 Данной командой мы запустим mongo shell, в данном окне мы можем выполнять команды для получения информации о базе данных.
 [более подробная информация по mongo shell](https://docs.mongodb.org/manual/reference/mongo-shell/)
 
