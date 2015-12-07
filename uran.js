@@ -10,6 +10,19 @@ var l_notail_ending = 4; //ending for no tail data
 var notail_ending = 'ffffffff';
 
 module.exports = {
+	readWholeFile:function(fileName,format,callback){
+		fs.readFile(fileName,function(err,data){
+			try {
+				if(err) {
+					console.log(err);
+					return;
+				}
+				module.exports.parseBinaryFile(data,format,callback)
+			} catch (e) {
+				console.log(e);
+			}
+		})
+	},
 	parseBinaryFile: function(data,format,callback){
 		var fileformat = {};
 		if (data == undefined) {console.log("parser, no data"); return; }
@@ -45,14 +58,16 @@ module.exports = {
 			} else {
 				data = data.slice(0,data.length-1);
 			}
+			if(packages.length>=3000){
+				callback(packages,{done:false,wrong:false});
+				packages = [];
+			}
 		}
 		if(data.length!=0){
 			console.log("WARN, wrong package, issue in parser");
-			// callback(packages,data);
-			return packages
+			callback(packages,{done:true,wrong:true});
 		} else {
-			return packages
-			// callback(packages);
+			callback(packages,{done:true,wrong:false});
 		}
 	}
 }

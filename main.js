@@ -6,8 +6,9 @@ var url = require("url"),
     fs = require("fs"),
     stream = require("stream"),
     vm = require("vm"),
-    uran = require("./uran.js")
-
+    uran = require("./uran.js"),
+    urandb = require("./uran-db.js")
+    
 var state = 0;
 var schemes = [];
 
@@ -119,7 +120,7 @@ function runScheme(socket,name) {
       for(var j in schemes[i].blocks) {
         schemes[i].vmc += parseCode(schemes[i].blocks[j].code,schemes[i].blocks[j].id,schemes[i].blocks[j].connects) + "\n\n\n";  
       }
-      //console.log(schemes[i].vmc);
+      // console.log(schemes[i].vmc);
       try {
         schemes[i].vm = new vm.createContext(kernel(socket,schemes[i].name));      
         vm.runInContext(schemes[i].vmc,schemes[i].vm);
@@ -211,29 +212,23 @@ function kernel(socket,name) {
     }
   };
   k.System.thread = function(offset,callback) {
-    setTimeout(callback,offset);
+    var cb_errhandling = function(){
+      try {
+        callback();
+      } catch (e) {
+        console.log(e)
+      }
+    }
+    setTimeout(cb_errhandling,offset);
+  }
+  k.System.saveToDb = function(data,collection,callback){
+    urandb.writeDocsToDb(collection,data,callback);
+  }
+  k.System.findInDb = function(collection,query,callback){
+	urandb.findDocsInDb(collection,query,callback);
   }
   k.Uran.parse100Mhz = function(path,callback) {
-    fs.open(path,"r",function(status,fd){
-      if(status){console.log(status.message);return;}
-      var length = fs.statSync(path).size,
-        chunk_l = 49180*100,
-        buffer = new Buffer(chunk_l),
-        lim = (length/chunk_l)+1;
-      var packages=[];
-      for(var i=1;i<=lim;i++){
-        var pos = length - chunk_l*i;
-        if (pos<0) {
-          chunk_l= length - chunk_l*(i-1);
-          buffer = new Buffer(chunk_l);
-          pos = 0;
-        }
-        fs.readSync(fd,buffer,0,chunk_l,pos);
-        var pack = uran.parseBinaryFile(buffer,"100Mhz_notail");
-        packages = packages.concat(pack);
-      }
-      callback(packages);
-    });
+    uran.readWholeFile(path,"100Mhz_notail",callback);
   }
   k.Stat.histogram = function(signal,from,to,bars) {
     var r = [];

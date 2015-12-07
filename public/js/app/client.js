@@ -247,7 +247,7 @@ function newBlock(type) {
     });
     jsPlumb.fire("jsPlumbDemoLoaded", instance);
 
-    newAddonPanelDeleteButton.setAttribute('onclick','jsPlumb.detachAllConnections("block' + curid + '");jsPlumb.empty("block' + curid + '")');
+    newAddonPanelDeleteButton.setAttribute('onclick','jsPlumb.detachAllConnections("block' + curid + '");jsPlumb.empty("block' + curid + '");$("#block' + curid + '").remove();');
     newAddonPanelSettingsButton.setAttribute('onclick','flipMode(document.getElementById("block' + curid + '-editor")._dom)');
     curid++;
 }
@@ -334,20 +334,17 @@ function bufToString(b) {
 }
 
 function main() {
-  var schemeDiv = $('#statemachine-demo'); //document.getElementById("statemachine-demo");
+  var schemeDiv = $('#statemachine-demo'); 
   socket = io();
   socket.on('event', function (data) {
     if(data.data.length == 4) {  
     	$('#' + data.ip + "-prefix").html(bufToString(data.data));      
-/*         document.getElementById(data.ip + "-prefix").innerHTML = bufToString(data.data); */
     } else { 
         showEvent(data.data,data.id);
     }
     $('#' + data.ip + "-row").addClass('info');
-/*     document.getElementById(data.ip + "-row").className = "info"; */
     setTimeout(function() {
     	$('#' + data.ip + "-row").addClass('success');
-/*         document.getElementById(data.ip + "-row").className = "success";         */
     }, 50);
   });
   socket.on('client', function(data) {
@@ -470,7 +467,8 @@ function parseScheme() {
     $("#statemachine-demo .w").each(function (idx, elem) {
         blocksNumber++;
         var $elem = $(elem);
-        blocks.push({id: elem.id, code: document.getElementById(elem.id + "-editor")._dom.getValue()});
+        var id = "#"+elem.id + "-editor"
+        blocks.push({id: elem.id, code: $("#"+elem.id + "-editor")[0]._dom.getValue()});
     }); 
     for(var j in blocks) {
         blocks[j].connects = [];
