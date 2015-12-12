@@ -18,9 +18,19 @@ This README would normally document whatever steps are necessary to get your app
 ### Работа с mongoDB ###
 Перед запуском сервера на node.js надо запустить сервер mongodb.
 Для запуска сервера необходимо выполнить в отдельном окне терминала команду:
-	<p>mongod</p>
+
+```
+#!shell
+mongod
+```
+
 После запуска сервера mongodb, необходимо открыть еще одно окно терминала и выполнить команду
-	<p>mongo</p>
+
+```
+#!shell
+mongo
+```
+
 Данной командой мы запустим mongo shell, в данном окне мы можем выполнять команды для получения информации о базе данных.
 [более подробная информация по mongo shell](https://docs.mongodb.org/manual/reference/mongo-shell/)
 

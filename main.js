@@ -51,6 +51,19 @@ io.sockets.on('connection', function (socket) {
   socket.on('scheme-stop', function(data) {
     stopScheme(socket,data.name);
   })
+  
+  socket.on('get-blocks', function(data) {
+    fs.readdir("blocks",function(err, files) {
+      socket.emit('blocks',files); 
+    }) 
+  })
+
+  socket.on('get-block', function(data) {
+    fs.readFile("blocks/" + data.name, 'utf8', function(err,file) {
+      socket.emit('block',{text:file, id:data.id, title: data.name});
+      //console.log(file)
+    });
+  })
 
   var handshakeData = new Array();
   for(var i in schemes) {
