@@ -7,7 +7,6 @@ System.ondata(function(data) {
 			}
 		}
 	}
-	//log(Stat.histogram(h,2000,2400,300));
 	System.push([Stat.histogram(h,2000,2400,300)]);		
 });
 

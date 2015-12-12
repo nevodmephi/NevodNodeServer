@@ -261,7 +261,7 @@ function newBlock(type) {
     });
     jsPlumb.fire("jsPlumbDemoLoaded", instance);
 
-    newAddonPanelDeleteButton.setAttribute('onclick','jsPlumb.detachAllConnections("block' + curid + '");jsPlumb.empty("block' + curid + '")');
+    newAddonPanelDeleteButton.setAttribute('onclick','jsPlumb.detachAllConnections("block' + curid + '");jsPlumb.empty("block' + curid + '");$("#block' + curid + '").remove();');
     newAddonPanelSettingsButton.setAttribute('onclick','flipMode(document.getElementById("block' + curid + '-editor"),document.getElementById("block' + curid + '"))');
     curid++;
 }

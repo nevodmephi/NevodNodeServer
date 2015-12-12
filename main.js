@@ -4,9 +4,11 @@ var url = require("url"),
     io = require("socket.io"),
     express = require("express"),
     fs = require("fs"),
+    stream = require("stream"),
     vm = require("vm"),
-    uran = require("./uran.js")
-
+    uran = require("./uran.js"),
+    urandb = require("./uran-db.js")
+    
 var state = 0;
 var schemes = [];
 
@@ -131,7 +133,7 @@ function runScheme(socket,name) {
       for(var j in schemes[i].blocks) {
         schemes[i].vmc += parseCode(schemes[i].blocks[j].code,schemes[i].blocks[j].id,schemes[i].blocks[j].connects) + "\n\n\n";  
       }
-      //console.log(schemes[i].vmc);
+      // console.log(schemes[i].vmc);
       try {
         schemes[i].vm = new vm.createContext(kernel(socket,schemes[i].name));      
         vm.runInContext(schemes[i].vmc,schemes[i].vm);
@@ -223,13 +225,23 @@ function kernel(socket,name) {
     }
   };
   k.System.thread = function(offset,callback) {
-    setTimeout(callback,offset);
+    var cb_errhandling = function(){
+      try {
+        callback();
+      } catch (e) {
+        console.log(e)
+      }
+    }
+    setTimeout(cb_errhandling,offset);
+  }
+  k.System.saveToDb = function(data,collection,callback){
+    urandb.writeDocsToDb(collection,data,callback);
+  }
+  k.System.findInDb = function(collection,query,callback){
+	urandb.findDocsInDb(collection,query,callback);
   }
   k.Uran.parse100Mhz = function(path,callback) {
-    //uran.parseBinaryFile(fs.readFileSync(path),"100Mhz_notail",callback);
-    fs.readFile(path,function(err,data) {
-      uran.parseBinaryFile(data,"100Mhz_notail",callback);
-    });
+    uran.readWholeFile(path,"100Mhz_notail",callback);
   }
   k.Stat.histogram = function(signal,from,to,bars) {
     var r = [];
