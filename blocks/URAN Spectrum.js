@@ -5,6 +5,7 @@ var sp = [[],[],[],[],[],[],[],[],[],[],[],[]];
 var createSp = function(event,channel){
 	if (event.channel == channel){
 	    var max = Number((event.max).toFixed(0));
+	    max = max < 0 ? -max : max;
 	    var isNewMax = false
 	    if(max>prevMaxs[channel]){
         isNewMax = true

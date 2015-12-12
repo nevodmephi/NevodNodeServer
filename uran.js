@@ -9,6 +9,9 @@ var l_notail_ending = 4; //ending for no tail data
 
 var notail_ending = 'ffffffff';
 
+
+// var dropi = 0;
+
 module.exports = {
 	readWholeFile:function(fileName,format,callback){
 		fs.readFile(fileName,function(err,data){
@@ -59,9 +62,15 @@ module.exports = {
 				data = data.slice(0,data.length-1);
 			}
 			if(packages.length>=3000){
+// 				if(dropi == 6){
 				callback(packages,{done:false,wrong:false});
+// 					return;
+// 				}
+// 				dropi++;
+// 				callback(packages,{done:false,wrong:false});
 				packages = [];
-			}
+// 				return;
+			} 
 		}
 		if(data.length!=0){
 			console.log("WARN, wrong package, issue in parser");

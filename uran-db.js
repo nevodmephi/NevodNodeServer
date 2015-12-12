@@ -16,11 +16,11 @@ module.exports = {
 		});
 	},
 	
-	findDocsInDb:function(collection,query,callback){
+	findDocsInDb:function(collection,query,sorting,callback){
 		MongoClient.connect(mongoURL,function(err,db){
 			assert.equal(null,err);
 			
-			findDocs(db,collection,query,function(docs){
+			findDocs(db,collection,query,sorting,function(docs){
 				db.close();
 				callback(docs);
 			});
@@ -36,8 +36,8 @@ var insertDocuments = function(db,collection_name,docs,callback){
 	});
 }
 
-var findDocs = function(db,collection_name,query,callback){
-	var cursor = db.collection(collection_name).find(query);
+var findDocs = function(db,collection_name,query,sorting,callback){
+	var cursor = db.collection(collection_name).find(query).sort(sorting);
 	var docs = [];
 	cursor.each(function(err,doc){
 		assert.equal(null,err);

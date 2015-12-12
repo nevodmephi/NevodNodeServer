@@ -204,6 +204,14 @@ function kernel(socket,name) {
     }
     return f;
   }
+  k.Shared.writeFile = function(path,data) {
+	  try {
+		  fs.appendFileSync(path,data);
+	  } catch (e) {
+		  k.raiseError();
+		  console.log(e);
+	  }
+  },
   k.System.raiseError = function() {
     for(var i in schemes) {
       if(schemes[i].name == name) {
@@ -224,8 +232,8 @@ function kernel(socket,name) {
   k.System.saveToDb = function(data,collection,callback){
     urandb.writeDocsToDb(collection,data,callback);
   }
-  k.System.findInDb = function(collection,query,callback){
-	urandb.findDocsInDb(collection,query,callback);
+  k.System.findInDb = function(collection,query,sorting,callback){
+	urandb.findDocsInDb(collection,query,sorting,callback);
   }
   k.Uran.parse100Mhz = function(path,callback) {
     uran.readWholeFile(path,"100Mhz_notail",callback);
