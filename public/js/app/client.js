@@ -27,7 +27,7 @@ var clientsCount=0;
 function initjsPlumb() {
     instance = jsPlumb.getInstance({
         Endpoint: ["Dot", {radius: 1}],
-        HoverPaintStyle: {strokeStyle: "#333333", lineWidth: 1 },
+        HoverPaintStyle: {strokeStyle: "#ffa500", lineWidth: 2 },
         ConnectionOverlays: [
             [ "Arrow", {
                 location: 1,
@@ -118,7 +118,7 @@ document.getElementById("inputsFrom").innerHTML = "";
             filter: ".ep",
             anchor: "Continuous",
             connector: [ "StateMachine", { curviness: 1 } ],
-            connectorStyle: { strokeStyle: "#333333", lineWidth: 1, outlineColor: "transparent", outlineWidth: 10 },
+            connectorStyle: { strokeStyle: "#ffa500", lineWidth: 2, outlineColor: "transparent", outlineWidth: 10 },
             maxConnections: 5,
             onMaxConnections: function (info, e) {
                 alert("Maximum connections (" + info.maxConnections + ") reached");
@@ -175,31 +175,35 @@ function newBlock(type) {
     newAddonPanelDeleteButton.innerHTML = "<span class='glyphicon glyphicon-remove'></span>";   
     //newAddon.innerHTML = '<div class="panel panel-default"><div class="panel-heading"><button class="ep btn btn-warning btn-xs"><span class="ep glyphicon glyphicon-flash"></span></button>&nbsp;<a target="_blank" href="' + data.url + '"><button class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-fullscreen"></span></button></a>&nbsp; ' + data.title + '<button onclick="$(\'#addonSettingsDialog\').modal({show: true});" class="btn btn-danger btn-xs pull-right"><span class="glyphicon glyphicon-wrench"></span></button></div><div class="panel-body"><div id="' + data.id + '-canvas" style="width:' + data.width + 'px;height:' + data.height + 'px;"></div></div></div>';
     newAddonPanelHeadingHeader = document.createElement('span');
+    newAddonPanelHeadingHeader.className = "header";
+    newAddonPanelHeadingHeader.id = "block" + curid + "-header";
+    newAddonPanelHeadingHeader.style.color = "#fff";
 
     var hd;
     var ap; var bp; var gp;
 
     newAddonPanelHeadingFile = document.createElement('input');
     newAddonPanelHeadingFile.type = "file";
+    newAddonPanelHeadingFile.style.visibility = "hidden";   
     newAddonPanelHeadingFile.className = "file-input";
     newAddonPanelHeadingFile.title = "block" + curid;
     newAddonPanelHeadingFile.setAttribute("onchange","readSingleFile(event,this)");  
 
-    newAddonPanelHeadingHeader.innerHTML = "&nbsp;" + hd;
+    newAddonPanelHeadingHeader.innerHTML = "VOID";
 
     newAddonPanelHeading.appendChild(newAddonPanelHeadingButton);
     newAddonPanelHeading.appendChild(newAddonPanelSettingsButton);
-    newAddonPanelHeading.appendChild(newAddonPanelHeadingFile);
-    //newAddonPanelHeading.appendChild(newAddonPanelHeadingHeader);
     newAddonPanelHeading.appendChild(newAddonPanelDeleteButton);
+    newAddonPanelHeading.appendChild(newAddonPanelHeadingFile);
+    newAddonPanelHeading.appendChild(newAddonPanelHeadingHeader);
 
     newAddonPanel.appendChild(newAddonPanelHeading);
 
     newAddon.style.left = document.body.scrollLeft + window.innerWidth/2 - 300/2 + getRandomInt(-25,25) +"px";
     newAddon.style.top = document.body.scrollTop + window.innerHeight*0.6 + getRandomInt(-25,25) + "px";
 
-    //newAddon.style.width = 30 + "em";
-    //newAddon.style.height = 30 + "em";
+    newAddon.style.width = 12 + "em";
+    newAddon.style.height = 8 + "em";
 
     newAddon.appendChild(newAddonPanel);
 
@@ -210,17 +214,27 @@ function newBlock(type) {
 
     $('#statemachine-demo').append(newAddon);
 
+    if(type=="file") $(newAddonPanelHeadingFile).trigger('click');
+
     newAddonEditor._dom = new Object();
     newAddonEditor._dom = new ace.edit("block" + curid + "-editor");
     newAddonEditor._dom._mode = false;
-    newAddonEditor._dom.setTheme("ace/theme/clouds");
+    newAddonEditor._dom.setTheme("ace/theme/tomorrow_night_blue");
     newAddonEditor._dom.getSession().setMode("ace/mode/javascript");
-    newAddonEditor.style.width = "40em";
-    newAddonEditor.style.height = "35em";
+    newAddonEditor.style.width = "1em";
+    newAddonEditor.style.height = "1em";
+
+    if(type!="file") {
+        getBlock(type,"block" + curid + "-editor");
+    }
+
+    newAddonEditor.style.visibility = "hidden";
 
     newAddonEditor._dom.setOptions({
         fontFamily: "monospace",
-        fontSize: "8pt"
+        fontSize: "12pt",
+        showLineNumbers: false,
+        wrapBehavioursEnabled: false
     });
 
 /*     document.getElementById("statemachine-demo").appendChild(newAddon); */
@@ -232,7 +246,7 @@ function newBlock(type) {
             filter: ".ep",
             anchor: "Continuous",
             connector: [ "StateMachine", { curviness: 1 } ],
-            connectorStyle: { strokeStyle: "#333333", lineWidth: 1, outlineColor: "transparent", outlineWidth: 10 },
+            connectorStyle: { strokeStyle: "#ffa500", lineWidth: 2, outlineColor: "transparent", outlineWidth: 10 },
             maxConnections: 5,
             onMaxConnections: function (info, e) {
                 alert("Maximum connections (" + info.maxConnections + ") reached");
@@ -248,8 +262,12 @@ function newBlock(type) {
     jsPlumb.fire("jsPlumbDemoLoaded", instance);
 
     newAddonPanelDeleteButton.setAttribute('onclick','jsPlumb.detachAllConnections("block' + curid + '");jsPlumb.empty("block' + curid + '")');
-    newAddonPanelSettingsButton.setAttribute('onclick','flipMode(document.getElementById("block' + curid + '-editor")._dom)');
+    newAddonPanelSettingsButton.setAttribute('onclick','flipMode(document.getElementById("block' + curid + '-editor"),document.getElementById("block' + curid + '"))');
     curid++;
+}
+
+function getBlock(f,d) {
+    socket.emit('get-block',{name: f,id: d});
 }
 
 var plotList = function(data,legendName,axesName,graphType){
@@ -301,27 +319,42 @@ var plotList = function(data,legendName,axesName,graphType){
     oscScreen = $.plot($("#oscilloscope"), plot_data, options);
 };
 
-function readSingleFile(e,sender) {
-  var file = e.target.files[0];
+function readSingleFile(t,sender) {
+  var file = t.target.files[0];
   if (!file) {
     return;
   }
   var reader = new FileReader();
   reader.onload = function(e) {
-    var contents = e.target.result;
+    var contents = e.target.result; 
     document.getElementById(sender.title + "-editor")._dom.setValue(contents);
+    document.getElementById(sender.title + "-header").innerHTML = t.target.value.split("\\").join("/").split("/")[t.target.value.split("\\").join("/").split("/").length-1].toUpperCase().split(".JS").join("");
   };
   reader.readAsText(file);
 }
 
-function flipMode(editor) {
+function flipMode(o,b) {
+    editor = o._dom;
     if(editor._mode == false) {
-        editor.setTheme("ace/theme/solarized_light"); 
-        editor.getSession().setMode("ace/mode/plain_text");
+        o.style.visibility = "visible";
+        o.style.width = "39em";
+        o.style.height = "30em";
+        b.style.width = "60em";
+        b.style.height = "51em";
     } else {
+        o.style.visibility = "hidden";
+        o.style.width = "1em";
+        o.style.height = "1em";
+        b.style.width = "12em";
+        b.style.height = "8em";
+        /*editor._settings = editor.getValue();
         editor.setTheme("ace/theme/clouds");
         editor.getSession().setMode("ace/mode/javascript");
+        editor.setOptions({
+            fontSize: "8pt"
+        });*/
     }
+    editor.resize();
     editor._mode = !editor._mode;
 }
 
@@ -356,6 +389,21 @@ function main() {
     updateClientsCount();
     /* document.getElementById('clients').innerHTML += '<tr id="' + data.ip + '-row" class="success"><td>' + data.ip + '</td><td id="' + data.ip + '-prefix"></td><td id="' + data.ip + '-state">ok</td><td><button type="button" class="btn btn-default btn-xs" data-toggle="button" aria-pressed="false" autocomplete="off">экран</button><button type="button" class="btn btn-default btn-xs" data-toggle="button" aria-pressed="false" autocomplete="off">звук</button></td><td><button type="button" class="btn btn-default btn-xs" onclick="installScheme(\'' + data.ip + '\')"><span class="glyphicon glyphicon-upload"></span></button></td></tr>'; */
   });
+  socket.on('blocks', function(data) {
+    document.getElementById("blocks-menu").innerHTML = "";
+    for(var i in data) {
+        document.getElementById("blocks-menu").innerHTML +='<li><a href="#" onclick="newBlock(\'' +  data[i] + '\')">' + data[i] + '</a></li>';
+    }
+    document.getElementById("blocks-menu").innerHTML += '<li role="separator" class="divider"></li>';
+    document.getElementById("blocks-menu").innerHTML += '<li><a href="#" onclick="newBlock(\'file\')"><span class="glyphicon glyphicon-floppy-open" aria-hidden="true"></span>&nbsp;&nbsp;Из файла</a></li>'
+    
+  });
+  socket.on('block', function(data) {
+    //alert([data.text,data.id])
+    document.getElementById(data.id)._dom.setValue(data.text);
+    document.getElementById(data.id.split("-editor").join("-header")).innerHTML = data.title.toUpperCase().split(".JS").join("");
+
+  })
 
     socket.on('handshake',function(data) {
         deadSchenes = 0;
@@ -485,6 +533,10 @@ function parseScheme() {
     scheme.blocks = blocks;
     scheme.name = document.getElementById('schemeName').value;
     return scheme;
+}
+
+function getBlocks() {
+    socket.emit("get-blocks");
 }
 
 function downloadScheme(name) {

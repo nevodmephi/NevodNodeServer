@@ -32,16 +32,18 @@ thead {
     cursor: move;
     font-size: 11px;
     overflow: hidden;
-    background-color: #fff;
+    background-color: transparent;
 }
 
 .w input {
     font-size: 1.5em;
     width: 100%;
+    background-color: #333;
+
 }
 
 body {
-   background-image: url('/img/ps_neutral.png');
+   background-image: url('http://subtlepatterns2015.subtlepatterns.netdna-cdn.com/patterns/fake_brick.png');
    overflow: hidden;  
 }
 
@@ -55,10 +57,25 @@ iframe {
 
 .panel-default {
     margin-bottom: 0 !important;
+    background-color: #000 !important;
+    border-style: none !important;
+    border-width: 0 !important;
+    height: 100%;
+}
+
+.panel-heading {
+    background-color: #000 !important;
+    height: 4em !important;
+    border-color: #333 !important;
 }
 
 .panel-default .btn {
     margin-right: 0.2em;
+}
+
+.panel-default .header {
+    font-size: 12pt !important;
+    margin: auto;
 }
 
 .aLabel._jsPlumb_hover {

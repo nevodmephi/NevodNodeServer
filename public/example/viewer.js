@@ -7,10 +7,6 @@ $(document).ready(function(){
 	plotList([data,d2,d3],["data","d2"],["number"],"bar");
 });
 
-
-
-
-
 var plotList = function(data,legendName,axesName,graphType){
 	var plot_data = [];
 	for (var i=0;i<data.length;i++) {
