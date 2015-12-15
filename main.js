@@ -250,7 +250,10 @@ function kernel(socket,name) {
   }
   k.Uran.parse100Mhz = function(path,callback) {
     uran.readWholeFile(path,"100Mhz_notail",callback);
-  }
+  },
+  k.Uran.parse200MhzTail = function(path,callback) {
+	uran.readWholeFile(path,"200Mhz_tail",callback);
+  },
   k.Stat.histogram = function(signal,from,to,bars) {
     var r = [];
     w = (to-from)/bars;
