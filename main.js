@@ -6,8 +6,9 @@ var url = require("url"),
     fs = require("fs"),
     stream = require("stream"),
     vm = require("vm"),
-    uran = require("./uran.js"),
-    urandb = require("./uran-db.js")
+    uran = require("./modules/uran.js"),
+    db = require("./modules/db.js"),
+    tcpserver = require("./modules/tcp_server.js")
     
 var state = 0;
 var schemes = [];
@@ -243,10 +244,10 @@ function kernel(socket,name) {
     setTimeout(cb_errhandling,offset);
   }
   k.System.saveToDb = function(data,collection,callback){
-    urandb.writeDocsToDb(collection,data,callback);
+    db.writeDocsToDb(collection,data,callback);
   }
   k.System.findInDb = function(collection,query,sorting,callback){
-	urandb.findDocsInDb(collection,query,sorting,callback);
+	db.findDocsInDb(collection,query,sorting,callback);
   }
   k.Uran.parse100Mhz = function(path,callback) {
     uran.readWholeFile(path,"100Mhz_notail",callback);

@@ -97,7 +97,7 @@ var funcs = function(sigs){
 		    g.push([x,y])
 		}
 		results.push(g);
-	}
+	} 
 	return results;
 }
 

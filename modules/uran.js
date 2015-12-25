@@ -28,7 +28,7 @@ module.exports = {
 				try {
 					module.exports.parseBinaryFile(data,format,callback)
 				} catch (e){
-					console.log("PARSERERROR: "+e);
+					console.log("PARSER_CALLBACK_ERROR: "+e);
 				}
 			} catch (e) {
 				console.log(e);
@@ -47,7 +47,8 @@ module.exports = {
 			packagelength:l_100_data+l_24_header+l_notail_ending,
 			ending:notail_ending,
 			hf:"",
-			sig_type:"no signal"
+			sig_type:"no signal",
+			packCount: 2000
 		};
 		if (data == undefined) { console.log("parser, no data"); return; }
 		switch (format) {
@@ -64,6 +65,7 @@ module.exports = {
 				fileformat.ending = tail_ending;
 				fileformat.hf = "40b_f";
 				fileformat.sig_type = "200MhzTail_signal";
+				fileformat.packCount = 100;
 				break;
 			default:
 				console.log("parser, wrong format");
@@ -94,8 +96,9 @@ module.exports = {
 			} else {
 				data = data.slice(0,data.length-1);
 			}
-			if(packages.length>=2000){
+			if(packages.length>=fileformat.packCount){
 				callback(packages,{done:false,wrong:false});
+				packages = []
 			} 
 		}
 		if(data.length!=0){
@@ -123,7 +126,7 @@ var parsePackageData = function(p_data,tail) {
 		}
 		return [array,tailarray];
 	} catch (e){
-		console.log("PARSERERROR: "+e);
+		console.log("PARSER_ERROR: "+e);
 	}
 }
 
@@ -148,7 +151,7 @@ var parseHeader = function(header,hf) {
 	var min =  (d_time[4]%0b10000000)/0b10;
 	var hour = (d_time[5]%0b10000)*0b10 + d_time[4]/0b10000000 | 0;
 	var day = (d_time[6]%0b100)*0b10000 + d_time[5]/0b10000 | 0;
-	var time = [day,hour,min,s,ms,mks,ns*10];
+	var time = [Math.floor(day),Math.floor(hour),Math.floor(min),Math.floor(s),Math.floor(ms),Math.floor(mks),Math.floor(ns*10)];
 	return time;
 }
 

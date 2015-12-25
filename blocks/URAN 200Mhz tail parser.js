@@ -1,62 +1,63 @@
-var null_mean_delta = 10;
-
-var getMaxOfArray = function(array){
-	return Math.max.apply(null,array);
-};
-
-var signals = [];
-var zero_lines = [];
 
 
 System.thread(1000,function() {
-	Uran.parse200MhzTail("resources/shared/test_0910tail.bin",function(data,info) {
+	var getMaxOfArray = function(array){
+		return Math.max.apply(null,array);
+	};
+	
+	var signals = [];
+	var zero_lines = [];
+	Uran.parse200MhzTail("resources/shared/tail/TailTail1.bin",function(data,info) {
 		for (var i in data){
 			var pack = data[i];
+			var zsigs = [], ztails = [], maxs = [];
 			for (var j in pack.signal){
 				var sig = pack.signal[j];
-				var sum = 0
-/*
-				for (var k in sig){
-					sum+=sig[k];
-				}
-				var mean = sum/sig.length;
-*/
+				var tail = pack.tail[j].slice(500,pack.tail[j].length);
 				var max = getMaxOfArray(sig);
-// 				var delta = max - mean;
-				signals.push({
-					channel:j,
-					signal:sig,
-					time:pack.time,
-					max:max,
-					
-				});
-/*
-				if(delta>null_mean_delta){
-					signals.push({
-						channel:j,
-						signal:sig,
-						time:pack.time,
-						max:max,
-						avg:mean
-					});
-				} else if(zero_lines.length<12) {
+				if(zero_lines.length<12){
+					var sum = 0
+					for (var k in tail){
+						sum+=tail[k];
+					}
+					var mean = sum/tail.length;
 					zero_lines.push(mean);
 				}
-*/
-
+				var zsig = [];
+				var ztail = [];
+				for(var k in sig){
+					zsig.push(sig[k]-zero_lines[j]);
+				}
+				sig = [];
+				for (var k in tail){
+					ztail.push(tail[k]-zero_lines[j]);
+				}
+				tail = [];
+				zsigs.push(zsig);
+				ztails.push(ztail);
+				maxs.push(max-zero_lines[j]);
 			}
-		}
-/*
-		for(var i in signals){
-			var sig = signals[i];
-			sig.max -= zero_lines[sig.channel];
-			for (var j in sig.signal){
-				sig.signal[j]-=zero_lines[sig.channel];
+			var signal = {
+				signals:zsigs,
+				time:pack.time,
+				maxs:maxs,
+				tails:ztails	
 			}
+			signals.push(signal);
 		}
-*/
 		log(signals.length);
 		System.push(signals)
 		signals = []	
 	});
 });
+
+
+
+
+
+
+
+
+
+
+
