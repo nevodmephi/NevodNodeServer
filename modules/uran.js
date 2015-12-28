@@ -39,6 +39,7 @@ module.exports = {
 		
 	},
 	parseBinaryFile: function(data,format,callback){
+		var i = 0;
 		var fileformat = {
 			l_data:l_100_data,
 			l_header:l_24_header,
@@ -97,15 +98,15 @@ module.exports = {
 				data = data.slice(0,data.length-1);
 			}
 			if(packages.length>=fileformat.packCount){
-				callback(packages,{done:false,wrong:false});
+				callback(packages,{done:false,wrong:false,packNum:i});
 				packages = []
 			} 
 		}
 		if(data.length!=0){
 			console.log("WARN, wrong package, issue in parser");
-			callback(packages,{done:true,wrong:true});
+			callback(packages,{done:true,wrong:true,packNum:i});
 		} else {
-			callback(packages,{done:true,wrong:false});
+			callback(packages,{done:true,wrong:false,packNum:i});
 		}
 	}
 }

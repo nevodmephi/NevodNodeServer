@@ -1,4 +1,4 @@
-
+var g_info = {}
 
 System.thread(1000,function() {
 	var getMaxOfArray = function(array){
@@ -46,6 +46,7 @@ System.thread(1000,function() {
 			signals.push(signal);
 		}
 		log(signals.length);
+		g_info = info;
 		System.push(signals)
 		signals = []	
 	});

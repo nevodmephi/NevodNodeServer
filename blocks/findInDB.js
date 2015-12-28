@@ -1,14 +1,16 @@
-var sortquery = {"time.0":1,"time.1":1,"time.2":1,
-	"time.3":1,"time.4":1,
-	"time.5":1,"time.6":1};
+var order = -1
 
-System.findInDb("test30112015",{channel:0},sortquery,function(data){
+var sortquery = {"time.0":order,"time.1":order,"time.2":order,
+	"time.3":order,"time.4":order,
+	"time.5":order,"time.6":order};
+
+System.findInDb("test30112015",{},sortquery,function(data){
 	System.push(data);
 });
 
 
 
-
+ 
 
 
 

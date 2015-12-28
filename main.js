@@ -214,7 +214,7 @@ function kernel(socket,name) {
     try {
       f = fs.readFileSync("resources/shared/" + path);
     } catch (e) {
-      k.raiseError();
+      k.System.raiseError();
     }
     return f;
   }
@@ -222,7 +222,7 @@ function kernel(socket,name) {
 	  try {
 		  fs.appendFileSync(path,data);
 	  } catch (e) {
-		  k.raiseError();
+		  k.System.raiseError();
 		  console.log(e);
 	  }
   },
