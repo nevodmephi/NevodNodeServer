@@ -100,7 +100,7 @@ var doWork = function(data){
       sig.signal[j]-=sig.zero_line;
     }
   }
-  log(signals.length);
+  console.log(signals.length);
   doEvent(signals)
   signals = []
 }
