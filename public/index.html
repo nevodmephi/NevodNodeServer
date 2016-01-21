@@ -4,34 +4,38 @@
         <title>КРАН</title>
         <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
         <link rel="stylesheet" href="/css/plumb.css">
-        <link href="/img/logo_small.png" rel="shortcut icon" type="image/png" />      
+        <link href="/img/logo_small.png" rel="shortcut icon" type="image/png" />
         <link href="/css/bootstrap.min.css" rel="stylesheet">
+        <link href="/css/index.css" rel="stylesheet">
     </head>
     <body onload="initjsPlumb();main();" onKeyDown="hotKey(event)" data-demo-id="statemachine" data-library="dom">
 
 <!-- Navbar -->
 
-        <nav class="navbar navbar-inverse navbar-default navbar-fixed-top">
+        <nav class="navbar navbar-default navbar-fixed-top">
             <div class="container-fluid">
                 <a class="navbar-brand" href="#">
         			<table><tr><td><img alt="Brand" src="/img/logo_small.png"></td><td>&nbsp;&nbsp;<b>КРАН<sup>&nbsp;&alpha;</sup></b></td></tr></table>
       			</a>
       <ul class="nav navbar-nav">
+	    <li id="btnEasyMode">
+          <a id="emodeid" href="#" class="dropdown-toggle sliding-u-l-r" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('esmode')">Быстрая обработка</a>
+        </li>
         <li class="active" id="btnConstructor">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('constructor')">Схема обработки</a>
+          <a id="btnconstrid" href="#" class="dropdown-toggle sliding-u-l-r sliding-u-l-r-active" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('constructor')">Схема обработки</a>
         </li>
         <li id="btnScreen">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('screen')">Визуализатор</a>
+          <a id="btnscreenid" href="#" class="dropdown-toggle sliding-u-l-r" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('screen')">Визуализатор</a>
         </li>
         <li id="btnLog">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('log')">База данных</a>
+          <a id="btnlogid" href="#" class="dropdown-toggle sliding-u-l-r" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('log')">База данных</a>
         </li>
-        <li id="btnSettings">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('settings')">Контроль состояний</a>
+        <li id="btncontroll">
+          <a id="btnsetid" href="#" class="dropdown-toggle sliding-u-l-r" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('controll')">Контроль состояний</a>
         </li>
       </ul>
                 <div class="btn-group pull-right" role="group" aria-label="...">
-                    <button onclick="$('#connectedDevices').modal('show')" type="button" class="btn navbar-btn btn-xs btn-info" id="schemesStatus">⊥</button>
+                    <button onclick="$('#connectedDevices').modal('show')" type="button" class="btn navbar-btn btn-success" id="schemesStatus">Схемы</button>
                 </div>
             </div>
         </nav>
@@ -47,7 +51,7 @@
     <span class="caret"></span>
     <span class="sr-only">Toggle Dropdown</span>
   </button>
-  <ul class="dropdown-menu" id="blocks-menu">
+  <ul class="dropdown-menu scrollable-menu" id="blocks-menu">
     <li role="separator" class="divider"></li>
     <li><a href="#" onclick="newBlock('file')">Из файла</a></li>
   </ul>
@@ -118,6 +122,49 @@
   </div>
 </div>
 
+<!-- Modal settings  controll state-->
+
+ <div class="modal fade" id="controllstatesetting" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel1">Настройка контроля состояний:</h4>
+      </div>
+      <div class="modal-body">
+        <table>
+	        <thead style="font-size: 15px;"><tr><td>Отображать кластеры</td><td></td><td>Общие настройки</td></tr></thead>
+	        <tbody>
+		        <tr>
+			        <td><div class="checkbox settings-top"><input type="checkbox" class="custom-checkbox" id="1claster" checked><label for="1claster"> 1-й кластер</label></div></td>
+		        </tr>
+		        <tr>
+			        <td><div class="checkbox"><input type="checkbox" class="custom-checkbox" id="2claster"><label for="2claster"> 2-й кластер</label></div></td>
+		        </tr>
+		        <tr>
+			        <td><div class="checkbox"><input type="checkbox" class="custom-checkbox" id="3claster"><label for="3claster"> 3-й кластер</label></div></td>
+		        </tr>
+		        <tr>
+			        <td><div class="checkbox"><input type="checkbox" class="custom-checkbox" id="4claster"><label for="4claster"> 4-й кластер</label></div></td>
+		        </tr>
+		        <tr>
+			        <td><div class="checkbox"><input type="checkbox" class="custom-checkbox" id="5claster"><label for="5claster"> 5-й кластер</label></div></td>
+		        </tr>
+		        <tr>
+			        <td><div class="checkbox"><input type="checkbox" class="custom-checkbox" id="6claster"><label for="6claster"> 6-й кластер</label></div></td>
+		        </tr>
+	        </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+	      <button type="button" id="schemeInstallButton" class="btn btn-success" onclick="" data-dismiss="modal" aria-label="Close">Готово</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
 <div id="oscill-container">
 <div id="oscilloscope">
 </div>
@@ -126,7 +173,7 @@
   <div class="container">
     <div class="btn-group" data-toggle="buttons">
         <label class="btn btn-default active" onclick="oscPlay = true;">
-            <input type="radio" name="options" id="option3" checked> 
+            <input type="radio" name="options" id="option3" checked>
             <span class="glyphicon glyphicon-play" aria-hidden="true"></span>
         </label>
         <label class="btn btn-default" onclick="oscPlay = false;">
@@ -135,7 +182,7 @@
         </label>
     </div>
     <button type="button" class="btn btn-default" data-toggle="button" aria-pressed="false" onclick="switchOscRec()">
-        <span class="glyphicon glyphicon-record" aria-hidden="true"></span>    
+        <span class="glyphicon glyphicon-record" aria-hidden="true"></span>
     </button>
     <button class="btn btn-default navbar-btn" onclick="clearOsc()"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
   </div>
@@ -156,19 +203,20 @@
     </table>
 <nav class="navbar navbar-inverse navbar-default navbar-fixed-bottom">
   <div class="container">
-        <button type="button" class="btn btn-default btn-xs" data-toggle="button" aria-pressed="false" onclick="switchLogPlay()">
-            <span class="glyphicon glyphicon-pause" aria-hidden="true"></span>    
+        <button type="button" class="btn btn-default" data-toggle="button" aria-pressed="false" onclick="switchLogPlay()">
+            <span class="glyphicon glyphicon-pause" aria-hidden="true"></span>
         </button>
-        <button class="btn btn-default navbar-btn btn-xs" onclick="clearLog()"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
+        <button class="btn btn-default navbar-btn" onclick="clearLog()"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
   </div>
 </nav>
 </div>
 
-<div id="settings-container">
-
+<div id="controll-container">
+<svg class="svg-view" id="svg"></svg>
 <nav class="navbar navbar-inverse navbar-default navbar-fixed-bottom">
   <div class="container">
-    <button class="btn btn-success navbar-btn pull-right">Применить</button>
+    <button type="button" class="btn btn-default navbar-btn" onclick="setControllState([]);"><span aria-hidden="true">Пуск</span></button>
+    <button type="button" class="btn btn-default navbar-btn" onclick="$('#controllstatesetting').modal('show')"><span aria-hidden="true">Настройка</span></button>
   </div>
 </nav>
 </div>
@@ -222,6 +270,7 @@
         <script src="/js/flot/jquery.flot.axislabels.js"></script>
         <script src="/js/bootstrap/bootstrap.min.js"></script>
         <script src=""></script><script src="/js/ace-builds/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+        <script src="/js/snap.svg-min.js"></script>
       <!-- sockets.io -->
         <script>document.write('<script src="//'+ location.hostname + ':'+location.port+'/socket.io/socket.io.js">\x3C/script>')</script>
         <script type="text/javascript">
@@ -230,6 +279,7 @@
 
             $( document ).ready(function() {
                 initOsc();
+                updateControllState();
             });
 
             $(document).mousedown(function(e) {
@@ -261,7 +311,7 @@
     				$("html, body").scrollLeft(function(i, v) {
         				var x = e.clientX - stdX;
         				return scrX - x;
-    				});    				
+    				});
     			}
 			});
 

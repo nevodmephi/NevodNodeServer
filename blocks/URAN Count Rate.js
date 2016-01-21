@@ -49,9 +49,24 @@ var getCountRate = function(data){
 }
 
 System.ondata(function(data){
+	var sigs = [];
+	for(var i=0;i<12;i++){
+		sigs.push([])
+		for (var j in data){
+			var sig = data[j];
+			if(sig.channel == i){
+				sigs[i].push(sig)
+			}
+		}
+	}
+	var rates = []
+	for (var i in sigs){
+		rates.push(getCountRate(sigs[i]))
+		
+	}
 // 	var rh = getCountRatePerHour(data)
-	var rates = getCountRate(data);
-	System.push([rates]);
+	
+	System.push(rates);
 	
 // 	log(rates.length);
 })

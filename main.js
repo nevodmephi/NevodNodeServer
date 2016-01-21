@@ -4,12 +4,15 @@ var url = require("url"),
     io = require("socket.io"),
     express = require("express"),
     fs = require("fs"),
-    stream = require("stream"),
     vm = require("vm"),
     uran = require("./modules/uran.js"),
     db = require("./modules/db.js"),
-    tcpserver = require("./modules/tcp_server.js")
-    
+    tcpserver = require("./modules/tcp_server.js");
+
+const child_process = require("child_process");
+var children = [];
+createChildProcess("bgParsing-100");
+
 var state = 0;
 var schemes = [];
 
@@ -52,11 +55,11 @@ io.sockets.on('connection', function (socket) {
   socket.on('scheme-stop', function(data) {
     stopScheme(socket,data.name);
   })
-  
+
   socket.on('get-blocks', function(data) {
     fs.readdir("blocks",function(err, files) {
-      socket.emit('blocks',files); 
-    }) 
+      socket.emit('blocks',files);
+    })
   })
 
   socket.on('get-block', function(data) {
@@ -74,6 +77,20 @@ io.sockets.on('connection', function (socket) {
   console.log("[H] " + socket.handshake.address);
 
 });
+
+function createChildProcess(task){
+  if(children.length>5){
+    console.log("WARN to much child processes, max = 5")
+    return;
+  }
+  const child = child_process.fork("./modules/bg_server.js")
+  child.task = task;
+  children.push(child)
+  child.on('exit',function(code,signal){
+    children.splice(children.indexOf(child), 1);
+  });
+  child.send(task)
+}
 
 function installScheme(socket,scheme) {
   var newScheme = new Object();
@@ -104,7 +121,7 @@ function removeScheme(socket,name) {
       schemes.splice(i);
       io.sockets.emit('scheme-removed',{name: name});
       return true;
-    }    
+    }
   }
 
   return false;
@@ -119,9 +136,9 @@ function downloadScheme(socket,name) {
       data.blocks = schemes[i].blocks;
       socket.emit('scheme-downloaded',{scheme: data});
       return true;
-    }    
+    }
   }
-  return false;  
+  return false;
 }
 
 function runScheme(socket,name) {
@@ -132,11 +149,11 @@ function runScheme(socket,name) {
       }
       //console.log(schemes[i]);
       for(var j in schemes[i].blocks) {
-        schemes[i].vmc += parseCode(schemes[i].blocks[j].code,schemes[i].blocks[j].id,schemes[i].blocks[j].connects) + "\n\n\n";  
+        schemes[i].vmc += parseCode(schemes[i].blocks[j].code,schemes[i].blocks[j].id,schemes[i].blocks[j].connects) + "\n\n\n";
       }
-      // console.log(schemes[i].vmc);
+      console.log(schemes[i].vmc);
       try {
-        schemes[i].vm = new vm.createContext(kernel(socket,schemes[i].name));      
+        schemes[i].vm = new vm.createContext(kernel(socket,schemes[i].name));
         vm.runInContext(schemes[i].vmc,schemes[i].vm);
       } catch (e) {
         schemes[i].status = "dead";
@@ -150,9 +167,9 @@ function runScheme(socket,name) {
       }
       io.sockets.emit('scheme-ran',{name: name, status: schemes[i].status});
       return true;
-    }    
+    }
   }
-  return false;  
+  return false;
 }
 
 function pauseScheme(socket,name) {
@@ -161,22 +178,22 @@ function pauseScheme(socket,name) {
       schemes[i].status = "paused";
       io.sockets.emit('scheme-paused',{});
       return true;
-    }    
+    }
   }
-  return false;  
+  return false;
 }
 
 function stopScheme(socket,name) {
   for(var i in schemes) {
     if(name == schemes[i].name) {
       if(schemes[i].vmc !== undefined) {delete schemes[i].vmc;};
-      if(schemes[i].data !== undefined) {delete schemes[i].data;};      
+      if(schemes[i].data !== undefined) {delete schemes[i].data;};
       schemes[i].status = "stopped";
       io.sockets.emit('scheme-stopped',{name: name});
       return true;
-    }    
+    }
   }
-  return false;  
+  return false;
 }
 
 function parseCode(code,block,connections) {
@@ -201,7 +218,7 @@ function kernel(socket,name) {
   k.System.push = function(blocks,data) {
     for(var i in blocks) {
       k[blocks[i]] = data;
-    } 
+    }
   }
   k.System.ondata = function(__THISBLOCK,callback) {
     k.__defineSetter__(__THISBLOCK,callback);
@@ -225,14 +242,14 @@ function kernel(socket,name) {
 		  k.System.raiseError();
 		  console.log(e);
 	  }
-  },
+  }
   k.System.raiseError = function() {
     for(var i in schemes) {
       if(schemes[i].name == name) {
         schemes[i].errors++;
       }
     }
-  };
+  }
   k.System.thread = function(offset,callback) {
     var cb_errhandling = function(){
       try {
@@ -250,11 +267,14 @@ function kernel(socket,name) {
 	db.findDocsInDb(collection,query,sorting,callback);
   }
   k.Uran.parse100Mhz = function(path,callback) {
-    uran.readWholeFile(path,"100Mhz_notail",callback);
-  },
+    uran.readWholeFileSync(path,"100Mhz",callback);
+  }
   k.Uran.parse200MhzTail = function(path,callback) {
-	uran.readWholeFile(path,"200Mhz_tail",callback);
-  },
+	uran.readWholeFileSync(path,"200Mhz_tail",callback);
+  }
+  k.Uran.parse200MhzNoTail = function(path,callback){
+	uran.readWholeFileSync(path,"200Mhz_notail",callback);
+  }
   k.Stat.histogram = function(signal,from,to,bars) {
     var r = [];
     w = (to-from)/bars;
@@ -263,7 +283,7 @@ function kernel(socket,name) {
       for(var j=0;j<bars;j++) {
         if((signal[i]>=from+j*w)&&(signal[i]<from+(j+1)*w)) {
           r[j]++;
-        }  
+        }
       }
     }
     for(var i in r) r[i] = [from+i*w,r[i]];
@@ -271,6 +291,9 @@ function kernel(socket,name) {
   }
   k.Online.quickView = function(data,legend,axes,type) {
     io.sockets.emit('quick-view',{data: data,legend: legend, axes: axes,type:type});
+  }
+  k.Online.controllState = function(data){
+    io.sockets.emit('controll-state',{data:data});
   }
 
   return k;

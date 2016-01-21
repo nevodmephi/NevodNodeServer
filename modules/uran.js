@@ -7,7 +7,7 @@ var l_100_data = 2048*12*2; //main data length for 100 MHz, no tail
 var l_24_header = 24; //24 bytes header length, no tail 
 var l_notail_ending = 4; //ending for no tail data 
 
-var l_tail_data = 1024*12*2;
+var l_200_data = 1024*12*2;
 var l_tail_ending = 8;
 var l_40_header = 40;
 var l_tail = 20000*12*2;
@@ -18,6 +18,18 @@ var tail_ending = 'eeeeeeeeffffffff';
 
 
 module.exports = {
+	readWholeFileSync:function(fileName,format,callback){
+		try {
+			var data = fs.readFileSync(fileName);
+			try {
+				module.exports.parseBinaryFile(data,format,callback)
+			} catch (e){
+				console.log("PARSER_CALLBACK_ERROR: "+e);
+			}
+		} catch (e) {
+			console.log(e);
+		}
+	},
 	readWholeFile:function(fileName,format,callback){
 		fs.readFile(fileName,function(err,data){
 			try {
@@ -53,21 +65,26 @@ module.exports = {
 		};
 		if (data == undefined) { console.log("parser, no data"); return; }
 		switch (format) {
-			case "100Mhz_notail":
+			case "100Mhz":
 				fileformat.hf = "24b_f"
 				fileformat.sig_type = "100Mhz_signal"
 				break;
 			case "200Mhz_tail":
-				fileformat.l_data = l_tail_data;
+				fileformat.l_data = l_200_data;
 				fileformat.l_header = l_40_header;
 				fileformat.l_ending = l_tail_ending;
 				fileformat.l_tail = l_tail;
-				fileformat.packagelength = l_tail_data+l_40_header+l_tail_ending+l_tail;
+				fileformat.packagelength = l_200_data+l_40_header+l_tail_ending+l_tail;
 				fileformat.ending = tail_ending;
 				fileformat.hf = "40b_f";
 				fileformat.sig_type = "200MhzTail_signal";
 				fileformat.packCount = 100;
 				break;
+			case "200Mhz_notail":
+				fileformat.hf = "24b_f";
+				fileformat.sig_type = "200Mhz_notail";
+				fileformat.l_data = l_200_data;
+				fileformat.packagelength = l_200_data+l_24_header+l_notail_ending
 			default:
 				console.log("parser, wrong format");
 				return;
@@ -100,6 +117,7 @@ module.exports = {
 			if(packages.length>=fileformat.packCount){
 				callback(packages,{done:false,wrong:false,packNum:i});
 				packages = []
+				i++;
 			} 
 		}
 		if(data.length!=0){

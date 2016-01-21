@@ -147,7 +147,7 @@ function setConnection() {
         from = o.id.split("-")[1];
     });
     $( ".btn.btn-warning.t-input.active" ).each(function(i,o) {
-        to = o.id.split("-")[1];           
+        to = o.id.split("-")[1];
     });
     if((from!=undefined)&&(to!=undefined)) {
         curConnection.getOverlay('label').setLabel(from + " &rarr; " + to);
@@ -167,12 +167,12 @@ function newBlock(type) {
     newAddonPanelHeading.className = "panel-heading";
 
     newAddonPanelHeadingButton = document.createElement('button');
-    newAddonPanelHeadingButton.className = "ep btn btn-warning btn-xs";
-    newAddonPanelHeadingButton.innerHTML = "↰";    
+    newAddonPanelHeadingButton.className = "ep btn btn-default btn-xs";
+    newAddonPanelHeadingButton.innerHTML = "↰";
     newAddonPanelSettingsButton.className = "btn btn-default btn-xs";
     newAddonPanelSettingsButton.innerHTML = "<span class='glyphicon glyphicon-cog'></span>";
-    newAddonPanelDeleteButton.className = "btn btn-danger btn-xs pull-right";
-    newAddonPanelDeleteButton.innerHTML = "<span class='glyphicon glyphicon-remove'></span>";   
+    newAddonPanelDeleteButton.className = "btn btn-default btn-xs pull-right";
+    newAddonPanelDeleteButton.innerHTML = "<span class='glyphicon glyphicon-remove'></span>";
     //newAddon.innerHTML = '<div class="panel panel-default"><div class="panel-heading"><button class="ep btn btn-warning btn-xs"><span class="ep glyphicon glyphicon-flash"></span></button>&nbsp;<a target="_blank" href="' + data.url + '"><button class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-fullscreen"></span></button></a>&nbsp; ' + data.title + '<button onclick="$(\'#addonSettingsDialog\').modal({show: true});" class="btn btn-danger btn-xs pull-right"><span class="glyphicon glyphicon-wrench"></span></button></div><div class="panel-body"><div id="' + data.id + '-canvas" style="width:' + data.width + 'px;height:' + data.height + 'px;"></div></div></div>';
     newAddonPanelHeadingHeader = document.createElement('span');
     newAddonPanelHeadingHeader.className = "header";
@@ -184,10 +184,10 @@ function newBlock(type) {
 
     newAddonPanelHeadingFile = document.createElement('input');
     newAddonPanelHeadingFile.type = "file";
-    newAddonPanelHeadingFile.style.visibility = "hidden";   
+    newAddonPanelHeadingFile.style.visibility = "hidden";
     newAddonPanelHeadingFile.className = "file-input";
     newAddonPanelHeadingFile.title = "block" + curid;
-    newAddonPanelHeadingFile.setAttribute("onchange","readSingleFile(event,this)");  
+    newAddonPanelHeadingFile.setAttribute("onchange","readSingleFile(event,this)");
 
     newAddonPanelHeadingHeader.innerHTML = "VOID";
 
@@ -202,7 +202,7 @@ function newBlock(type) {
     newAddon.style.left = document.body.scrollLeft + window.innerWidth/2 - 300/2 + getRandomInt(-25,25) +"px";
     newAddon.style.top = document.body.scrollTop + window.innerHeight*0.6 + getRandomInt(-25,25) + "px";
 
-    newAddon.style.width = 12 + "em";
+    newAddon.style.width = 25 + "em";
     newAddon.style.height = 8 + "em";
 
     newAddon.appendChild(newAddonPanel);
@@ -219,7 +219,7 @@ function newBlock(type) {
     newAddonEditor._dom = new Object();
     newAddonEditor._dom = new ace.edit("block" + curid + "-editor");
     newAddonEditor._dom._mode = false;
-    newAddonEditor._dom.setTheme("ace/theme/tomorrow_night_blue");
+    newAddonEditor._dom.setTheme("ace/theme/xcode");
     newAddonEditor._dom.getSession().setMode("ace/mode/javascript");
     newAddonEditor.style.width = "1em";
     newAddonEditor.style.height = "1em";
@@ -231,13 +231,12 @@ function newBlock(type) {
     newAddonEditor.style.visibility = "hidden";
 
     newAddonEditor._dom.setOptions({
-        fontFamily: "monospace",
-        fontSize: "12pt",
+	    fontFamily: "Consolas",
+        fontSize: "14px",
         showLineNumbers: false,
         wrapBehavioursEnabled: false
     });
 
-/*     document.getElementById("statemachine-demo").appendChild(newAddon); */
     window.jsp = instance;
     var windows = jsPlumb.getSelector("#" + "block" + curid);
     instance.draggable(windows);
@@ -283,7 +282,7 @@ var plotList = function(data,legendName,axesName,graphType){
         } else { plot_data.push({label:legendName[i],data:pd}); }
     }
     data=[];
-    var options = {};
+    var options = {grid:{backgroundColor:"white"}};
     if (legendName.length!=0){
         options.legend = {
             show:true,
@@ -300,7 +299,7 @@ var plotList = function(data,legendName,axesName,graphType){
         options.yaxes = [{axisLabel:axesName[1]}];
     }
     switch (graphType) {
-        case "dots": 
+        case "dots":
             options.series = {points: {show: true,radius: 5}};
             break;
         case "dotsLines":
@@ -312,7 +311,7 @@ var plotList = function(data,legendName,axesName,graphType){
         case "bar":
             options.series = { bars: { show: true } };
             break;
-        default: 
+        default:
             options.series = {lines: {show:true}};
             break;
     }
@@ -326,7 +325,7 @@ function readSingleFile(t,sender) {
   }
   var reader = new FileReader();
   reader.onload = function(e) {
-    var contents = e.target.result; 
+    var contents = e.target.result;
     document.getElementById(sender.title + "-editor")._dom.setValue(contents);
     document.getElementById(sender.title + "-header").innerHTML = t.target.value.split("\\").join("/").split("/")[t.target.value.split("\\").join("/").split("/").length-1].toUpperCase().split(".JS").join("");
   };
@@ -337,15 +336,15 @@ function flipMode(o,b) {
     editor = o._dom;
     if(editor._mode == false) {
         o.style.visibility = "visible";
-        o.style.width = "39em";
-        o.style.height = "30em";
+        o.style.width = "43em";
+        o.style.height = "33em";
         b.style.width = "60em";
         b.style.height = "51em";
     } else {
         o.style.visibility = "hidden";
         o.style.width = "1em";
         o.style.height = "1em";
-        b.style.width = "12em";
+        b.style.width = "25em";
         b.style.height = "8em";
         /*editor._settings = editor.getValue();
         editor.setTheme("ace/theme/clouds");
@@ -370,10 +369,10 @@ function main() {
   var schemeDiv = $('#statemachine-demo'); //document.getElementById("statemachine-demo");
   socket = io();
   socket.on('event', function (data) {
-    if(data.data.length == 4) {  
-    	$('#' + data.ip + "-prefix").html(bufToString(data.data));      
+    if(data.data.length == 4) {
+    	$('#' + data.ip + "-prefix").html(bufToString(data.data));
 /*         document.getElementById(data.ip + "-prefix").innerHTML = bufToString(data.data); */
-    } else { 
+    } else {
         showEvent(data.data,data.id);
     }
     $('#' + data.ip + "-row").addClass('info');
@@ -396,7 +395,7 @@ function main() {
     }
     document.getElementById("blocks-menu").innerHTML += '<li role="separator" class="divider"></li>';
     document.getElementById("blocks-menu").innerHTML += '<li><a href="#" onclick="newBlock(\'file\')"><span class="glyphicon glyphicon-floppy-open" aria-hidden="true"></span>&nbsp;&nbsp;Из файла</a></li>'
-    
+
   });
   socket.on('block', function(data) {
     //alert([data.text,data.id])
@@ -420,13 +419,13 @@ function main() {
                     normalSchemes++;
                     break;
             }
-            $('#clients').append('<tr class="scheme-status-string scheme-' + data[i].name +'"><td class="scheme-status-string"><button class="btn btn-link btn-xs download-scheme-' + data[i].name + '" onclick="downloadScheme(\'' + data[i].name + '\')">' + data[i].name + '</button><td><td id="scheme-status-' + data[i].name + '">installed</td><td><div class="btn-group" data-toggle="buttons"><label class="btn btn-default btn-xs active stop-scheme-' + data[i].name + '" onclick="stopScheme(\'' + data[i].name + '\')"><input type="radio" autocomplete="off" checked><span class="glyphicon glyphicon-stop" aria-hidden="true"></span></label>&nbsp;<label class="btn btn-default btn-xs pause-scheme-' + data[i].name + '" onclick=""><input type="radio" autocomplete="off"><span class="glyphicon glyphicon-pause" aria-hidden="true"></span></label>&nbsp;<label class="btn btn-default btn-xs play-scheme-' + data[i].name + '" onclick="playScheme(\'' + data[i].name + '\')"><input type="radio" autocomplete="off" checked><span class="glyphicon glyphicon-play" aria-hidden="true"></span></label></div></td><td><button onclick="removeScheme(\'' + data[i].name + '\')" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button></td></tr>');        
-        }                
+            $('#clients').append('<tr class="scheme-status-string scheme-' + data[i].name +'"><td class="scheme-status-string"><button class="btn btn-link btn-xs download-scheme-' + data[i].name + '" onclick="downloadScheme(\'' + data[i].name + '\')">' + data[i].name + '</button><td><td id="scheme-status-' + data[i].name + '">installed</td><td><div class="btn-group" data-toggle="buttons"><label class="btn btn-default btn-xs active stop-scheme-' + data[i].name + '" onclick="stopScheme(\'' + data[i].name + '\')"><input type="radio" autocomplete="off" checked><span class="glyphicon glyphicon-stop" aria-hidden="true"></span></label>&nbsp;<label class="btn btn-default btn-xs pause-scheme-' + data[i].name + '" onclick=""><input type="radio" autocomplete="off"><span class="glyphicon glyphicon-pause" aria-hidden="true"></span></label>&nbsp;<label class="btn btn-default btn-xs play-scheme-' + data[i].name + '" onclick="playScheme(\'' + data[i].name + '\')"><input type="radio" autocomplete="off" checked><span class="glyphicon glyphicon-play" aria-hidden="true"></span></label></div></td><td><button onclick="removeScheme(\'' + data[i].name + '\')" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button></td></tr>');
+        }
         updateStatus();
     })
-    
+
     socket.on('scheme-installed', function(data) {
-        $('#clients').append('<tr class="scheme-status-string scheme-' + data.name +'"><td class="scheme-status-string"><button class="btn btn-link btn-xs download-scheme-' + data.name + '" onclick="downloadScheme(\'' + data.name + '\')">' + data.name + '</button><td><td id="scheme-status-' + data.name + '">installed</td><td><div class="btn-group" data-toggle="buttons"><label class="btn btn-default btn-xs active stop-scheme-' + data.name + '" onclick="stopScheme(\'' + data.name + '\')"><input type="radio" autocomplete="off" checked><span class="glyphicon glyphicon-stop" aria-hidden="true"></span></label>&nbsp;<label class="btn btn-default btn-xs pause-scheme-' + data.name + '" onclick=""><input type="radio" autocomplete="off"><span class="glyphicon glyphicon-pause" aria-hidden="true"></span></label>&nbsp;<label class="btn btn-default btn-xs play-scheme-' + data.name + '" onclick="playScheme(\'' + data.name + '\')"><input type="radio" autocomplete="off" checked><span class="glyphicon glyphicon-play" aria-hidden="true"></span></label></div></td><td><button onclick="removeScheme(\'' + data.name + '\')" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button></td></tr>');        
+        $('#clients').append('<tr class="scheme-status-string scheme-' + data.name +'"><td class="scheme-status-string"><button class="btn btn-link btn-xs download-scheme-' + data.name + '" onclick="downloadScheme(\'' + data.name + '\')">' + data.name + '</button><td><td id="scheme-status-' + data.name + '">installed</td><td><div class="btn-group" data-toggle="buttons"><label class="btn btn-default btn-xs active stop-scheme-' + data.name + '" onclick="stopScheme(\'' + data.name + '\')"><input type="radio" autocomplete="off" checked><span class="glyphicon glyphicon-stop" aria-hidden="true"></span></label>&nbsp;<label class="btn btn-default btn-xs pause-scheme-' + data.name + '" onclick=""><input type="radio" autocomplete="off"><span class="glyphicon glyphicon-pause" aria-hidden="true"></span></label>&nbsp;<label class="btn btn-default btn-xs play-scheme-' + data.name + '" onclick="playScheme(\'' + data.name + '\')"><input type="radio" autocomplete="off" checked><span class="glyphicon glyphicon-play" aria-hidden="true"></span></label></div></td><td><button onclick="removeScheme(\'' + data.name + '\')" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button></td></tr>');
         normalSchemes++;
     });
 
@@ -465,7 +464,7 @@ function main() {
         $(".scheme-" + data.name).removeClass("warning");
         $(".scheme-" + data.name).removeClass("success");
         $(".scheme-" + data.name).removeClass("info");
-        $(".stop-scheme-" + data.name).button('toggle');        
+        $(".stop-scheme-" + data.name).button('toggle');
     })
 
     socket.on('scheme-removed', function(data) {
@@ -477,11 +476,15 @@ function main() {
     })
 
     socket.on('scheme-wrong', function(data) {
-        alert(0);
+        alert("ошибка установки схемы "+ 0);
     })
 
     socket.on('quick-view', function(data) {
-        plotList(data.data,data.legend,data.axes,data.type)
+      plotList(data.data,data.legend,data.axes,data.type)
+    })
+
+    socket.on('controll-state',function(data){
+      setControllState(data.data);
     })
 }
 
@@ -492,16 +495,16 @@ function getRandomInt(min, max)
 
 function updateStatus() {
     if(warningSchemes>0) {
-        document.getElementById("schemesStatus").innerHTML = "!";
-        document.getElementById("schemesStatus").className = "btn navbar-btn btn-xs btn-warning";     
+        document.getElementById("schemesStatus").innerHTML = "Схемы!";
+        document.getElementById("schemesStatus").className = "btn navbar-btn  btn-warning";
     }
     if(deadSchemes>0) {
-        document.getElementById("schemesStatus").innerHTML = "!";
-        document.getElementById("schemesStatus").className = "btn navbar-btn btn-xs btn-danger";  
+        document.getElementById("schemesStatus").innerHTML = "Схемы!";
+        document.getElementById("schemesStatus").className = "btn navbar-btn  btn-danger";
         return 0;
     }
-    document.getElementById("schemesStatus").innerHTML = "⊥";
-    document.getElementById("schemesStatus").className = "btn navbar-btn btn-xs btn-info";
+    document.getElementById("schemesStatus").innerHTML = "Схемы";
+    document.getElementById("schemesStatus").className = "btn navbar-btn  btn-success";
 }
 
 function parseScheme() {
@@ -519,7 +522,7 @@ function parseScheme() {
         blocksNumber++;
         var $elem = $(elem);
         blocks.push({id: elem.id, code: document.getElementById(elem.id + "-editor")._dom.getValue()});
-    }); 
+    });
     for(var j in blocks) {
         blocks[j].connects = [];
     }
@@ -548,7 +551,7 @@ function checkSchemeName(n) {
     $('.scheme-status-string').each(function (idx, elem) {
         if(n==elem.innerHTML) {
             document.getElementById("schemeInstallButton").innerHTML = "Обновить схему";
-            flag = true;            
+            flag = true;
         }
     });
     if (flag==false) document.getElementById("schemeInstallButton").innerHTML = "Установить схему";
@@ -560,7 +563,7 @@ function installScheme(a) {
 }
 
 function removeScheme(a) {
-    socket.emit('scheme-remove',{name: a});    
+    socket.emit('scheme-remove',{name: a});
 }
 
 function playScheme(a) {
@@ -568,10 +571,11 @@ function playScheme(a) {
 }
 
 function stopScheme(a) {
-    socket.emit('scheme-stop',{name: a});    
+    socket.emit('scheme-stop',{name: a});
 }
 
 function initOsc() {
+	var options = {grid:{backgroundColor:"white"}};
     oscScreen = $.plot($("#oscilloscope"), [[0,0]]);
 }
 
@@ -600,7 +604,7 @@ function showEvent(ev,id) {
     colors: ["#FF6600", "#330099", "#FFCC00", "#CC0000", "#339900", "#CC3333", "#996600", "#CC00FF", "#0066CC","#6600CC","#FF6699","#00CC99","#FF6666","#666699","#CCFF33","#999966"],
     grid: {
         hoverable: true
-    }       
+    }
     }
     if(((oscRec==false) || (oscBuf.length>15))&&(oscPlay==true)) {
         $(".log-string").each(function(i,o) {
@@ -625,7 +629,7 @@ function switchOscRec() {
     if(oscRec==true) {
         $(".log-string").each(function(i,o) {
             o.style.color = "#000000";
-        });        
+        });
     }
 }
 
@@ -660,14 +664,21 @@ function closeOsc() {
 
 function setMode(m) {
         $("#btnConstructor").removeClass("active");
+        $("#btnconstrid").removeClass("sliding-u-l-r-active");
         $("#btnScreen").removeClass("active");
+        $("#btnscreenid").removeClass("sliding-u-l-r-active");
         $("#btnLog").removeClass("active");
-        $("#btnSettings").removeClass("active");
-        
+        $("#btnlogid").removeClass("sliding-u-l-r-active");
+        $("#btncontroll").removeClass("active");
+        $("#btnsetid").removeClass("sliding-u-l-r-active");
+        $("#btnEasyMode").removeClass("active");
+        $("#emodeid").removeClass("sliding-u-l-r-active");
+
         $('#oscill-container').css('visibility','hidden');
 		$('#constructor-navbar').css('visibility','hidden');
 		$('#log-container').css('visibility','hidden');
-		$('#settings-container').css('visibility','hidden');
+		$('#controll-container').css('visibility','hidden');
+		$('#statemachine-demo').css('display','none');
         /*
 document.getElementById('oscill-container').style.visibility = "hidden";
         document.getElementById('constructor-navbar').style.visibility = "hidden";
@@ -675,28 +686,112 @@ document.getElementById('oscill-container').style.visibility = "hidden";
         document.getElementById('settings-container').style.visibility = "hidden";
 */
     switch(m) {
+	    case "esmode":
+	    	$("#btnEasyMode").addClass("active");
+	    	$("#emodeid").addClass("sliding-u-l-r-active");
+	    	break;
         case "screen":
         	$('#oscill-container').css('visibility','visible');
 /*             document.getElementById('oscill-container').style.visibility = "visible"; */
             $("#btnScreen").addClass("active");
+            $("#btnscreenid").addClass("sliding-u-l-r-active");
             break;
         case "constructor":
         	$('#constructor-navbar').css('visibility','visible');
 /*             document.getElementById('constructor-navbar').style.visibility = "visible"; */
-            $("#btnConstructor").addClass("active"); 
+            $("#btnConstructor").addClass("active");
+            $("#btnconstrid").addClass("sliding-u-l-r-active");
+            $('#statemachine-demo').css('display','block');
             break;
         case "log":
         	$('#log-container').css('visibility','visible');
 /*             document.getElementById('log-container').style.visibility = "visible"; */
             $("#btnLog").addClass("active");
+            $("#btnlogid").addClass("sliding-u-l-r-active");
             break;
-        case "settings":
-        	$('#settings-container').css('visibility','visible')
-/*             document.getElementById('settings-container').style.visibility = "visible"; */
-            $("#btnSettings").addClass("active");
-            break;
+        case "controll":
+        	$('#controll-container').css('visibility','visible')
+          updateControllState();
+          $("#btncontroll").addClass("active");
+          $("#btnsetid").addClass("sliding-u-l-r-active");
+          break;
     }
 }
+
+var setControllState = function(data){
+  //data format: {energy:[],neutrons:[]}
+	var max = 2048
+	for (var i in detectors){
+		var det = detectors[i].detector;
+		var d = data.energy[i];
+    detectors[i].energylbl.attr({text:Math.round(d)});
+    detectors[i].neutronslbl.attr({text:data.neutrons[i]})
+		if (d<=50){
+			var val = Math.round(d*255.0/50).toString(16);
+			val = val.length==1?"0"+val:val;
+			det.animate({fill:"#00"+val+"FF"},500)
+		} else if(d>50 && d<=100){
+			var val = Math.round(255-((d-50)*255.0/50)).toString(16);
+			val = val.length==1?"0"+val:val;
+			det.animate({fill:"#00FF"+val},500)
+		} else if(d>100 && d<=200){
+			var val = Math.round((d-100)*255.0/100).toString(16);
+			val = val.length==1?"0"+val:val;
+			det.animate({fill:"#"+val+"FF00"},500)
+		} else if(d>200){
+			var val = Math.round(255-((d-200)*255.0/(max-200))).toString(16);
+			val = val.length==1?"0"+val:val;
+			det.animate({fill:"#FF"+val+"00"},500)
+		}
+	}
+};
+var detectors = [];
+var updateControllState = function(){
+  if(detectors.length!=0) { return; }
+	detectors = [];
+	var s = Snap("#svg");
+	s.clear();
+	var w = $("#svg").width(), h = $("#svg").height();
+	var x = bw = w*0.35, bh = h*0.9, x = w*0.5-bw/2, y = h*0.05;
+	var colorLegend = s.rect(w*0.9,h*0.5-125,50,250,20);
+	colorLegend.attr({stroke:"#000",strokeOpacity:1,strokeWidth:0,
+		fill:"l(0,1,0,0)#0000FF-#00FFFF-#00FF00-#FFFF00-#FF0000"
+	});
+	var bl1 = s.text(colorLegend.getBBox().x+colorLegend.getBBox().w+10,colorLegend.getBBox().y+colorLegend.getBBox().h*0.05,"2047").attr({fontWeight:200})
+	var bl2 = s.text(colorLegend.getBBox().x+colorLegend.getBBox().w+10,colorLegend.getBBox().y+colorLegend.getBBox().h*0.25,"200").attr({fontWeight:200})
+	var bl3 = s.text(colorLegend.getBBox().x+colorLegend.getBBox().w+10,colorLegend.getBBox().y+colorLegend.getBBox().h*0.5,"100").attr({fontWeight:200})
+	var bl4 = s.text(colorLegend.getBBox().x+colorLegend.getBBox().w+10,colorLegend.getBBox().y+colorLegend.getBBox().h*0.75,"50").attr({fontWeight:200})
+	var bl1 = s.text(colorLegend.getBBox().x+colorLegend.getBBox().w+10,colorLegend.getBBox().y+colorLegend.getBBox().h*0.99,"0").attr({fontWeight:200})
+
+	var border = s.rect(x,y,bw,bh,20);
+  var borderinfo = s.rect(x,y+bh*0.85,bw,bh*0.15,20).attr({fill:"white",fillOpacity:0.8,stroke:"black",strokeWidth:3});
+	var name = s.text(x+bw/2,y+bh*0.05,"1 кластер (корп. 47б)").attr({fontSize:20,textAnchor:"middle",fontWeight:300});
+	var grid = [[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]];
+	var j=1,k=1,gw=bw+200,gh=bh;
+	for (var i in grid){
+		grid[i][0]=x-100+(gw/4)*k;
+		grid[i][1]=y-20+(gh/5)*j;
+		j++;
+		if (j>4){k++;}
+		j = j>4?1:j;
+	}
+	for (var i in grid){
+		var detector = s.circle(grid[i][0],grid[i][1],25);
+		detector.attr({fill:"#fff",stroke:"#000",strokeWidth:2});
+    var n = s.circle(detector.getBBox().x-3,detector.getBBox().y-10,12).attr({fill:"black",fillOpacity:0.5});
+    var u = s.circle(detector.getBBox().x-8,detector.getBBox().y-13,5).attr({fill:"red",fillOpacity:0.5});
+    var d1 = s.circle(detector.getBBox().x+2,detector.getBBox().y-13,5).attr({fill:"blue",fillOpacity:0.5});
+    var d2 = s.circle(detector.getBBox().x-3,detector.getBBox().y-5,5).attr({fill:"blue",fillOpacity:0.5});
+    var energy = s.text(detector.getBBox().x+25,detector.getBBox().y+29,"0").attr({"text-anchor":"middle"})
+    var neutrons = s.text(detector.getBBox().x+20,detector.getBBox().y-6,"0").attr({"text-anchor":"middle"})
+    var det = {detector:detector,energylbl:energy,neutronslbl:neutrons};
+		detectors.push(det);
+	}
+  var p = s.path("M10-5-10,15M15,0,0,15M0-5-20,15").attr({fill: "none",stroke: "#bada55",strokeWidth: 5});
+  p = p.pattern(0, 0, 10, 10);
+  border.attr({fill: p,stroke: "#000",fillOpacity:0.7,strokeWidth: 3});
+
+};
 
 function deleteDisconnected() {
     $('#clients').children('tr').each(function (i,o) {
@@ -718,7 +813,7 @@ function clearOsc() {
     colors: ["#FF6600", "#330099", "#FFCC00", "#CC0000", "#339900", "#CC3333", "#996600", "#CC00FF", "#0066CC","#6600CC","#FF6699","#00CC99","#FF6666","#666699","#CCFF33","#999966"],
     grid: {
         hoverable: true
-    }       
+    }
     }
     oscScreen = $.plot($("#oscilloscope"), [[0,0]], options);
         $(".log-string").each(function(i,o) {
@@ -748,5 +843,5 @@ function hotKey(event) {
             document.body.style.oTransform = "scale(0.7)";
             document.body.style.transform = "scale(0.7)";
             break;
-    }    
+    }
 }

@@ -2,6 +2,9 @@
 @import url(https://fonts.googleapis.com/css?family=Kelly+Slab&subset=latin,cyrillic);
 
 body * {
+	font-weight: 400;
+	color: black;
+/* 	font-family: 'Oxygen', sans-serif; */
     /*font-family: 'Kelly Slab', cursive;*/
 }
 
@@ -10,8 +13,19 @@ body * {
 }
 
 .dropdown-toggle {
-    text-decoration: underline;
+	color: black !important;
 }
+
+.dropdown-toggle {
+	color: black !important;
+	background-color: white !important;
+}
+
+/*
+.dropdown-toggle {
+	color: black !important;
+}
+*/
 
 thead {
     font-weight: 600;
@@ -33,17 +47,20 @@ thead {
     font-size: 11px;
     overflow: hidden;
     background-color: transparent;
+    border-radius: 0px !important;
 }
 
 .w input {
     font-size: 1.5em;
     width: 100%;
     background-color: #333;
+    border-radius: 0px;
 
 }
 
 body {
-   background-image: url('http://subtlepatterns2015.subtlepatterns.netdna-cdn.com/patterns/fake_brick.png');
+	background-color: white;
+/*    background-image: url('http://subtlepatterns2015.subtlepatterns.netdna-cdn.com/patterns/fake_brick.png'); */
    overflow: hidden;  
 }
 
@@ -57,16 +74,17 @@ iframe {
 
 .panel-default {
     margin-bottom: 0 !important;
-    background-color: #000 !important;
+    background-color: rgba(227, 61, 21, 0.8) !important;
     border-style: none !important;
     border-width: 0 !important;
     height: 100%;
 }
 
 .panel-heading {
-    background-color: #000 !important;
+    background-color: rgba(227, 61, 21, 0.8) !important;
     height: 4em !important;
-    border-color: #333 !important;
+    border-color: rgba(21,129,226,0)/*#333*/ !important;
+    border-radius: 0px;
 }
 
 .panel-default .btn {
@@ -155,7 +173,7 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
     top: 64px;
     right: 0;
     bottom: 64px;
-    background-color: #eee;
+    background-color: white;
     z-index: 100;
 }
 
@@ -187,7 +205,7 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
     overflow: auto;    
 }
 
-#settings-container {
+#controll-container {
     position: fixed;
     left: 0;
     top: 64px;

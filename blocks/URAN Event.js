@@ -7,6 +7,7 @@ var getMaxOfArray = function(array){
 	return Math.max.apply(null,array);
 };
 
+/*
 var findQs = function(signal,lvl,max){
 	var offsets = []
 	var isMinOffFound = false;
@@ -37,6 +38,7 @@ var findQs = function(signal,lvl,max){
 	return {sunder:s,sabove:sm};
 	
 }
+*/
 
 var findDerivative = function(signal,lvl,max){
 	var f = [];
@@ -111,8 +113,10 @@ System.ondata(function(data){
 			channel:data[i].channel,
 			time:data[i].time,
 			max:data[i].max,
+			zero_line:data[i].zero_line,
+			noise:data[i].noise,
 			min:getMinOfArray(data[i].signal),
-			integrals:findQs(data[i].signal,lvl,data[i].max),
+// 			integrals:findQs(data[i].signal,lvl,data[i].max),
 			derivative:findDerivative(data[i].signal,lvl,data[i].max),
 			avg:data[i].avg
 		};
