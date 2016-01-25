@@ -3,9 +3,9 @@ var fs = require("fs");
 //file formats: 100Mhz_notail, 200Mhz_notail, 200Mhz_tail
 //hf (header format): 24b_f,  40b_f
 
-var l_100_data = 2048*12*2; //main data length for 100 MHz, no tail  
-var l_24_header = 24; //24 bytes header length, no tail 
-var l_notail_ending = 4; //ending for no tail data 
+var l_100_data = 2048*12*2; //main data length for 100 MHz, no tail
+var l_24_header = 24; //24 bytes header length, no tail
+var l_notail_ending = 4; //ending for no tail data
 
 var l_200_data = 1024*12*2;
 var l_tail_ending = 8;
@@ -47,8 +47,42 @@ module.exports = {
 			}
 		})
 	},
-	readFileByPart:function(fileName,format,callback){
-		
+	readFileByPart:function(filename,format,callback){
+		fs.open(filename,'r',function(status,fd){
+			if(status){
+				console.log(status.message);
+				return;
+			}
+			var fileLength = stats.size, chunk = 5000000, offset = fileLength - chunk,
+				buffer = new Buffer(chunk), packages = [];
+			var readCallback = function(data){
+				module.exports.parseBinaryFile(data,format,function(packs,dataleft,max_packs_length){
+					packages = packages.concat(packs);
+					var info = {
+						finished:false,
+						filestat:stats
+					}
+					if(offset == 0){
+						callback(packages,info);
+						return;
+					}
+					if(packages.length>max_packs_length){
+						info.finished = true;
+						callback(packages,info);
+						packages = [];
+					}
+					offset-=chunk;
+					if(offset<0){ chunk-=offset*(-1); offset = 0; }
+					var buffer = new Buffer(chunk)
+					fs.read(fd,buffer,0,chunk,offset,function(err,bytesRead,buffer){
+						readCallback(Buffer.concat([buffer,dataleft]))
+					})
+				});
+			};
+			fs.read(fd,buffer,0,chunk,offset,function(err,bytesRead,buffer){
+				readCallback(buffer)
+			})
+		});
 	},
 	parseBinaryFile: function(data,format,callback){
 		var i = 0;
@@ -100,7 +134,7 @@ module.exports = {
 					tail = data.slice(data.length-fileformat.packagelength,data.length-fileformat.packagelength+fileformat.l_tail);
 				}
 				data = data.slice(0,data.length-fileformat.packagelength);
-				p_data = parsePackageData(p_data,tail); 
+				p_data = parsePackageData(p_data,tail);
 				tail = [];
 				var packageObj = {
 					type:fileformat.sig_type,
@@ -115,16 +149,15 @@ module.exports = {
 				data = data.slice(0,data.length-1);
 			}
 			if(packages.length>=fileformat.packCount){
-				callback(packages,{done:false,wrong:false,packNum:i});
+				callback(packages,data,fileformat.packCount);
 				packages = []
 				i++;
-			} 
+			}
 		}
 		if(data.length!=0){
-			console.log("WARN, wrong package, issue in parser");
-			callback(packages,{done:true,wrong:true,packNum:i});
+			callback(packages,data,fileformat.packCount);
 		} else {
-			callback(packages,{done:true,wrong:false,packNum:i});
+			callback(packages,fileformat.packCount);
 		}
 	}
 }
@@ -134,13 +167,11 @@ var parsePackageData = function(p_data,tail) {
 		var array = [[],[],[],[],[],[],[],[],[],[],[],[]];
 		var tailarray = [[],[],[],[],[],[],[],[],[],[],[],[]];
 		for (var i=0;i<p_data.length;i+=2){
-			var sig_data = p_data.slice(i,i+2).toString('hex');
-			array[parseInt('0x'+sig_data[2])].push(parseInt('0x'+sig_data[3]+sig_data[0]+sig_data[1]));
+			array[p_data[i+1]>>4].push((p_data[i+1]%0b10000)*0b100000000 + p_data[i])
 		}
 		if(tail.length!=0){
 			for (var i=0;i<tail.length;i+=2){
-				var sig = tail.slice(i,i+2).toString('hex');
-				tailarray[parseInt('0x'+sig[2])].push(parseInt('0x'+sig[3]+sig[0]+sig[1]));
+				tailarray[tail[i+1]>>4].push((tail[i+1]%0b10000)*0b100000000 + tail[i])
 			}
 		}
 		return [array,tailarray];
@@ -173,42 +204,3 @@ var parseHeader = function(header,hf) {
 	var time = [Math.floor(day),Math.floor(hour),Math.floor(min),Math.floor(s),Math.floor(ms),Math.floor(mks),Math.floor(ns*10)];
 	return time;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

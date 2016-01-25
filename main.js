@@ -13,6 +13,7 @@ const child_process = require("child_process");
 var children = [];
 createChildProcess("bgParsing-100");
 
+
 var state = 0;
 var schemes = [];
 
@@ -151,7 +152,7 @@ function runScheme(socket,name) {
       for(var j in schemes[i].blocks) {
         schemes[i].vmc += parseCode(schemes[i].blocks[j].code,schemes[i].blocks[j].id,schemes[i].blocks[j].connects) + "\n\n\n";
       }
-      console.log(schemes[i].vmc);
+      // console.log(schemes[i].vmc);
       try {
         schemes[i].vm = new vm.createContext(kernel(socket,schemes[i].name));
         vm.runInContext(schemes[i].vmc,schemes[i].vm);
@@ -267,27 +268,13 @@ function kernel(socket,name) {
 	db.findDocsInDb(collection,query,sorting,callback);
   }
   k.Uran.parse100Mhz = function(path,callback) {
-    uran.readWholeFileSync(path,"100Mhz",callback);
+    uran.readFileByPart(path,"100Mhz",callback);
   }
   k.Uran.parse200MhzTail = function(path,callback) {
 	uran.readWholeFileSync(path,"200Mhz_tail",callback);
   }
   k.Uran.parse200MhzNoTail = function(path,callback){
 	uran.readWholeFileSync(path,"200Mhz_notail",callback);
-  }
-  k.Stat.histogram = function(signal,from,to,bars) {
-    var r = [];
-    w = (to-from)/bars;
-    for(var i=0;i<bars;i++) r[i]=0;
-    for(var i in signal) {
-      for(var j=0;j<bars;j++) {
-        if((signal[i]>=from+j*w)&&(signal[i]<from+(j+1)*w)) {
-          r[j]++;
-        }
-      }
-    }
-    for(var i in r) r[i] = [from+i*w,r[i]];
-    return r;
   }
   k.Online.quickView = function(data,legend,axes,type) {
     io.sockets.emit('quick-view',{data: data,legend: legend, axes: axes,type:type});

@@ -5,7 +5,7 @@ var fs = require('fs'),
 process.on("message",function(msg){
   switch (msg) {
     case "bgParsing-100":
-      watchForChanges();
+      watchForChanges("resources/shared/100mhz/");
       break;
     default:
     console.log("CP: unkown task")
@@ -16,25 +16,39 @@ process.on("message",function(msg){
 
 var collection= "multitest"
 
-var newFileName = "?";
-var oldFileName = "??";
-var watchForChanges = function(){
-  var path = "resources/shared/100mhz/"
+var watchForChanges = function(path){
+  var newFileName = "?";
+  var oldFileName = "??";
   var watcher = fs.watch(path)
   watcher.on('change',function(event,filename){
     if(event=="rename"){
-      fs.readdir(path,function(err,files){
-        if(files.indexOf(filename)==-1){
+      fs.stat(path+filename,function(err,stats){
+        if(err){
+          console.log(err);
           return;
         }
-        oldFileName = newFileName;
-        newFileName = filename;
-        if(oldFileName != "?" && oldFileName!=newFileName){
-          console.log("parse "+oldFileName)
-          uran.readWholeFileSync(path+oldFileName,"100Mhz",function(data){
-            doWork(data)
-          })
+        console.log(stats);
+      })
+      fs.readdir(path,function(err,files){
+        for (var i in files){
+          var file = files[i]
+
+          fs.stat(path+file,function(err,stats){
+            console.log(file+":")
+            console.log(stats);
+          });
         }
+        // if(files.indexOf(filename)==-1){
+        //   return;
+        // }
+        // oldFileName = newFileName;
+        // newFileName = filename;
+        // if(oldFileName != "?" && oldFileName!=newFileName){
+        //   console.log("parse "+oldFileName)
+        //   uran.readWholeFileSync(path+oldFileName,"100Mhz",function(data){
+        //     doWork(data)
+        //   })
+        // }
       })
     }
   });
