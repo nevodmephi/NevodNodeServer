@@ -16,6 +16,18 @@ var notail_ending = 'ffffffff';
 var tail_ending = 'eeeeeeeeffffffff';
 
 
+var writeLog = function(msg,data1,data2){
+	var time = new Date()
+	var logstr = time+" :msg("+msg+") dataleft:(type:"+(typeof data1)+" class:"+data1.constructor.name+")";
+	if(data2){
+		logstr+="buffer(type:"+(typeof data2)+" class:"+data2.constructor.name+")\n";
+	} else {
+		logstr+="\n"
+	}
+	fs.appendFileSync("./LOGFILE.dat",logstr)
+}
+
+
 
 module.exports = {
 	readWholeFileSync:function(fileName,format,callback){
@@ -53,34 +65,44 @@ module.exports = {
 				console.log(status.message);
 				return;
 			}
-			var fileLength = stats.size, chunk = 5000000, offset = fileLength - chunk,
-				buffer = new Buffer(chunk), packages = [];
-			var readCallback = function(data){
-				module.exports.parseBinaryFile(data,format,function(packs,dataleft,max_packs_length){
-					packages = packages.concat(packs);
-					var info = {
-						finished:false,
-						filestat:stats
-					}
-					if(offset == 0){
-						callback(packages,info);
-						return;
-					}
-					if(packages.length>max_packs_length){
-						info.finished = true;
-						callback(packages,info);
-						packages = [];
-					}
-					offset-=chunk;
-					if(offset<0){ chunk-=offset*(-1); offset = 0; }
-					var buffer = new Buffer(chunk)
-					fs.read(fd,buffer,0,chunk,offset,function(err,bytesRead,buffer){
-						readCallback(Buffer.concat([buffer,dataleft]))
-					})
-				});
-			};
-			fs.read(fd,buffer,0,chunk,offset,function(err,bytesRead,buffer){
-				readCallback(buffer)
+			fs.stat(filename,function(err,stats){
+				if(err){
+					console.log(err)
+					return;
+				}
+				var fileLength = stats.size, chunk = 5000000, offset = fileLength - chunk,
+					buffer = new Buffer(chunk), packages = [];
+				var readCallback = function(data){
+					module.exports.parseBinaryFile(data,format,function(packs,dataleft,max_packs_length){
+						packages = packages.concat(packs);
+						var info = {
+							finished:false,
+							filestat:stats
+						}
+						if(offset == 0){
+							info.finished=true;
+							callback(packages,info);
+							return;
+						}
+						if(packages.length>max_packs_length){
+							callback(packages,info);
+							packages = [];
+						}
+						offset-=chunk;
+						if(offset<0){ chunk-=offset*(-1); offset = 0; }
+						var buffer = new Buffer(chunk)
+						fs.read(fd,buffer,0,chunk,offset,function(err,bytesRead,buffer){
+							if(dataleft){
+								readCallback(Buffer.concat([buffer,dataleft]))
+							} else {
+								readCallback(buffer)
+							}
+						})
+					});
+				};
+				fs.read(fd,buffer,0,chunk,offset,function(err,bytesRead,buffer){
+					readCallback(buffer)
+				})
 			})
 		});
 	},
@@ -149,15 +171,17 @@ module.exports = {
 				data = data.slice(0,data.length-1);
 			}
 			if(packages.length>=fileformat.packCount){
+				writeLog("parse overflow event",data)
 				callback(packages,data,fileformat.packCount);
 				packages = []
 				i++;
 			}
 		}
 		if(data.length!=0){
+			writeLog("parse finished event,data left",data)
 			callback(packages,data,fileformat.packCount);
 		} else {
-			callback(packages,fileformat.packCount);
+			callback(packages,null,fileformat.packCount);
 		}
 	}
 }
