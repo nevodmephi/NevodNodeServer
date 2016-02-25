@@ -8,8 +8,8 @@ process.on("message",function(msg){
   switch (msg) {
     case "bgParsing-100":
       try {
-        watchForChanges("resources/shared/100mhz/","100Mhz","chip100","181")
-        // watchForChanges("e:\\БААК100\\100 181 плата с запуском нового файла по таймеру\\ADC_12CH\\bin\\Debug\\","100Mhz","chip100","181");
+        // watchForChanges("resources/shared/100mhz/","100Mhz","chip100","181")
+        watchForChanges("e:\\БААК100\\100 181 плата с запуском нового файла по таймеру и порог\\ver.1.1\\ADC_12CH\\bin\\Debug\\","100Mhz","chip100","182");
         // watchForChanges("e:\\БААК100\\100 183 плата с запуском нового файла по таймеру\\ADC_12CH\\bin\\Debug\\","100Mhz","chip100","183");
       } catch(e) {
         console.log(e);
