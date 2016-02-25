@@ -4,6 +4,9 @@ System.ondata(function(data){
 		if(data[i].channel==0){
 			signals.push(data[i].signal);
 		}
+		if(signals.length == 3){
+			break
+		}
 	}
-	System.push(signals);
+	Online.quickView(signals,[],["x","y"],"lines");
 });

@@ -1,0 +1,214 @@
+// uran math functions are here
+
+
+module.exports = {
+  avarage:function(array){
+    try {
+      var sum = 0.0;
+  		for (var i in array){
+  			sum+=array[i];
+  		}
+  		return sum/array.length;
+    } catch(e) {
+      console.log("UMATHERR_AVG: "+e)
+      return false
+    }
+  },
+  max_of_array:function(array){
+    return Math.max.apply(null,array);
+  },
+  min_of_array:function(array){
+    return Math.min.apply(null,array);
+  },
+  simple_moving_avarage:function(array,n){
+    try {
+      var sma = []
+      for (var i=0;i<array.length;i++){
+        var sum = array[i]
+        var devide = 1
+        for(var j=1;j<=n;j++){
+          if(array[i+j]!=undefined){
+            sum+=array[i+j]
+            devide++
+          }
+          if(array[i-j]!=undefined){
+            sum+=array[i-j]
+            devide++
+          }
+        }
+        var avg = sum/devide
+        sma.push(avg)
+      }
+      return sma
+    } catch(e) {
+      console.log("UMATHERR_SMA: "+e)
+      return false
+    }
+  },
+  charge_ratio:function(array,threshold,max){
+    try {
+      max = max == undefined ? this.max_of_array(array):max
+      threshold = threshold == undefined ? 110:threshold
+      if(max<0){
+        return [-1,-1]
+      }
+      var maxPos = 0;
+      for(var i=0;i<array.length;i++){
+        if(array[i]==max){
+          maxPos = i
+          break
+        }
+      }
+      var val = maxPos<=threshold ? 0 : array[maxPos-threshold]
+      val = val<0 ? 0 : val
+      return[max,val]
+    } catch (e) {
+      console.log("UMATHERR_CHR: "+e)
+      return false
+    }
+  },
+  derivative:function(array){
+    try {
+      var der = [];
+    	for (var i=0;i<array.length;i++){
+    		if (i == array.length-1){
+          continue;
+    		} else {
+    			der.push(array[i+1]-array[i])
+    		}
+    	}
+    	return der;
+    } catch (e) {
+      console.log("UMATHERR_DER: "+e)
+      return false
+    }
+  },
+  derivativeWidth:function(der,threshold){ //derivative width and hight of hills
+    try {
+      var info = [], x1 = 0, x2 = 0, isHillFound = false;
+      for(var i=0;i<der.length;i++){
+        var y = der[i];
+        if(y>=threshold && !isHillFound){
+          x1 = i
+          isHillFound = true
+        }
+        if(y<0 && isHillFound){
+          x2 = i;
+          isHillFound = false;
+          info.push(x2-x1);
+          x2 = 0, x1 = 0
+        }
+      }
+      return this.max_of_array(info)
+    } catch (e) {
+      console.log("UMATHERR_DERW: "+e)
+      return false
+    }
+  },
+  approximation:function(data,power){
+  	var N = data.length, K = power;
+  	var a = [] //неизвестные коэффициенты полинома
+  	var b = [] //столбец свободных членов
+  	var x=[],y=[];
+  	var sums = [];//суммы степеней x,y при неизвестных коэффициентах полинома
+  	for(var i=0;i<N;i++){
+  		x.push(i+1);
+  		y.push(data[i]);
+  	}
+  	for(var i=0; i<K+1; i++){
+      a[i]=0;
+  	  b[i]=0;
+  	  for(var j=0; j<K+1; j++){
+        sums.push([]);
+        sums[i].push(0);
+      }
+    }
+  	for(var i=0;i<K+1;i++){
+  		for(var j=0;j<K+1;j++){
+        sums[i][j]=0;
+  			for(var k = 0;k<N;k++){
+  				sums[i][j] += Math.pow(x[k],i+j);
+  			}
+  		}
+  	}
+  	for(var i=0;i<K+1;i++){
+  		for(var j=0;j<N;j++){
+  			b[i] += Math.pow(x[j],i)*y[j];
+  		}
+  	}
+  	var temp = 0;
+  	for(var i=0;i<K+1;i++){
+      if(sums[i][i]==0){
+        for(var j=0; j<K+1; j++){
+          if(j==i) { continue; }
+  				if(sums[j][i] !=0 && sums[i][j]!=0){
+            for(var k=0; k<K+1; k++){
+  				     temp = sums[j][k];
+  						 sums[j][k] = sums[i][k];
+  						 sums[i][k] = temp;
+  			   		}
+  			   		 temp = b[j];
+  			   		 b[j] = b[i];
+  			   		 b[i] = temp;
+  			   		 break;
+             }
+           }
+         }
+       }
+
+  	for(var k=0; k<K+1; k++){
+  		for(var i=k+1; i<K+1; i++){
+  			if(sums[k][k]==0){
+  		       log("Solution is not exist.");
+  		       return;
+  		    }
+  		    var M = sums[i][k] / sums[k][k];
+  		    for(var j=k; j<K+1; j++){
+  			    sums[i][j] -= M * sums[k][j];
+  			}
+  			b[i] -= M*b[k];
+  		}
+  	}
+  	for(var i=(K+1)-1; i>=0; i--){
+  		var s = 0;
+  		for(var j = i; j<K+1; j++){
+  			s = s + sums[i][j]*a[j];
+  		}
+  		a[i] = (b[i] - s) / sums[i][i];
+  	}
+  	return a;
+  }
+}
+
+/*
+var findQs = function(signal,lvl,max){
+	var offsets = []
+	var isMinOffFound = false;
+	var offset = {
+		min:0,
+		max:0
+	}
+	for(var i in signal){
+		if(signal[i]>lvl && !isMinOffFound){
+			offset.min = i;
+			isMinOffFound = true;
+		}
+		if(signal[i]==max){
+			isMinOffFound = false;
+			offset.max = i;
+			offsets.push(offset);
+			break;
+		}
+	}
+	var sm = 0;
+	var s = 0;
+	var min = signal[offsets[0].min]
+	var imin = offsets[0].min, imax = offsets[0].max
+	for(var i=imin;i<imax;i++){
+		s += ((signal[i]-min)+(signal[i+1]-min))/2;
+		sm += ((max-signal[i])+(max-signal[i+1]))/2;
+	}
+	return {sunder:s,sabove:sm};
+
+}
+*/

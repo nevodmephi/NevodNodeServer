@@ -1,5 +1,5 @@
-@import url(http://fonts.googleapis.com/css?family=Exo+2:300&subset=latin,cyrillic);
-@import url(https://fonts.googleapis.com/css?family=Kelly+Slab&subset=latin,cyrillic);
+/*@import url(http://fonts.googleapis.com/css?family=Exo+2:300&subset=latin,cyrillic);*/
+/*@import url(https://fonts.googleapis.com/css?family=Kelly+Slab&subset=latin,cyrillic);*/
 
 body * {
 	font-weight: 400;
@@ -61,7 +61,7 @@ thead {
 body {
 	background-color: white;
 /*    background-image: url('http://subtlepatterns2015.subtlepatterns.netdna-cdn.com/patterns/fake_brick.png'); */
-   overflow: hidden;  
+   overflow: hidden;
 }
 
 iframe {
@@ -184,7 +184,7 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
     right: 0;
     bottom: 64px;
     z-index: 101;
-    visibility: hidden;    
+    visibility: hidden;
 }
 
 #log-container {
@@ -202,7 +202,7 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
     bottom: 64px;
     z-index: 101;
     visibility: hidden;
-    overflow: auto;    
+    overflow: auto;
 }
 
 #controll-container {
@@ -212,7 +212,7 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
     right: 0;
     bottom: 64px;
     z-index: 101;
-    visibility: hidden;    
+    visibility: hidden;
 }
 
 

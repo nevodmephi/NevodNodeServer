@@ -1,23 +1,20 @@
 var fs = require('fs'),
-    uran = require("./uran.js"),
+    parser = require("./parser.js"),
     db = require("./db.js"),
-    path = require("path")
-
-
-// var str = "hello alex\n ssccs";
-// console.log(str)
-// var b = new Buffer(str,"utf8")
-// console.log(b)
-// console.log(b.toString("utf8"))
-// fs.appendFile("resources/index.uran",b,function(err){})
-
+    uran = require("./uran.js")
+    heapdump = require("./heapdump.js").init("resources/")
 
 process.on("message",function(msg){
   switch (msg) {
     case "bgParsing-100":
-      // watchForChanges("resources/shared/100mhz/","100Mhz","chip100","181")
-      watchForChanges("e:\\БААК100\\100 181 плата с запуском нового файла по таймеру\\ADC_12CH\\bin\\Debug\\","100Mhz","chip100","181");
-      watchForChanges("e:\\БААК100\\100 183 плата с запуском нового файла по таймеру\\ADC_12CH\\bin\\Debug\\","100Mhz","chip100","183")
+      try {
+        watchForChanges("resources/shared/100mhz/","100Mhz","chip100","181")
+        // watchForChanges("e:\\БААК100\\100 181 плата с запуском нового файла по таймеру\\ADC_12CH\\bin\\Debug\\","100Mhz","chip100","181");
+        // watchForChanges("e:\\БААК100\\100 183 плата с запуском нового файла по таймеру\\ADC_12CH\\bin\\Debug\\","100Mhz","chip100","183");
+      } catch(e) {
+        console.log(e);
+        process.exit();
+      }
       break;
     default:
     console.log("CP: unkown task")
@@ -27,6 +24,20 @@ process.on("message",function(msg){
 
 
 var watchForChanges = function(path,format,collection,chiptype){
+  // var indexCollection = "index"+chiptype
+  var onFinished = function(collection,chiptype,timestamp){
+    console.log("parsed")
+    db.findDocsInDb(collection,{"chiptype":chiptype,"timestamp":timestamp,"neutron":true,"neutronDW":true},{},function(data){
+      console.log(data.length)
+      writeCrToTxt(data)
+    });
+    var date = new Date(timestamp.getFullYear(),timestamp.getMonth(),timestamp.getDate())
+    db.findDocsInDb(collection,{"chiptype":chiptype,"timestamp":{"$gte":date},"neutron":true,"neutronDW":true},{},function(data){
+      console.log(data.length)
+      writeSpToTxt(data)
+    });
+  }
+
   var newFileName = "?";
   var oldFileName = "??";
   var watcher = fs.watch(path)
@@ -40,130 +51,120 @@ var watchForChanges = function(path,format,collection,chiptype){
         newFileName = filename;
         if(oldFileName != "?" && oldFileName!=newFileName){
           console.log("parsing "+oldFileName)
-          uran.readFileByPart(path+oldFileName,format,function(data,info){
-            doWork(data,collection,info,chiptype)
+          parser.parseFileByPart(path+oldFileName,format,function(data,info){
+            var signals = uran.packs_process_100mhz(data,20,32,true)
+            if(signals.length!=0){
+              var events = uran.neutron_event(signals,0.1,0.6,chiptype,info.filestat.birthtime)
+              signals = null
+              var timestamp = info.filestat.birthtime
+              db.writeDocsToDb(collection,events,function(){
+                if(info.finished){
+                  onFinished(collection,chiptype,timestamp)
+                }
+              });
+              data = null;
+            } else if (info.finished){
+              signals = null
+              onFinished(collection,chiptype,info.filestat.birthtime)
+            }
           })
         }
       })
     }
   });
+  // db.removeCollection(indexCollection,function(){
+  //   fs.readdir(path,function(err,files){
+  //     if(err){
+  //       console.log("bg-server err: "+err)
+  //       return
+  //     }
+  //     var binfiles = []
+  //     for(var i in files){
+  //       if(files[i].slice(files[i].length-4,files[i].length)==".bin"){
+  //         binfiles.push(files[i])
+  //       }
+  //     }
+  //     db.findDocsInDb(indexCollection,{"chiptype":chiptype},{},function(data){
+  //       var indexes = []
+  //       if(data.length==0){
+  //         for(var i in binfiles){
+  //           var file = binfiles[i]
+  //           var index = {chiptype:chiptype,file:file,error:false,parsed:false}
+  //           indexes.push(index)
+  //         }
+  //       } else {
+  //         var exists = false
+  //         for(var i in binfiles){
+  //           var file = binfiles[i]
+  //           for(var j in data){
+  //             if(file==data[j].file){
+  //               exists = true
+  //               break
+  //             }
+  //           }
+  //           if(!exists){
+  //             var index = {chiptype:chiptype,file:file,error:false,parsed:false}
+  //             indexes.push(index)
+  //           }
+  //           exists = false
+  //         }
+  //       }
+  //       if(indexes.length!=0){
+  //         db.writeDocsToDb(indexCollection,indexes,function(){})
+  //       }
+  //     })
+  //   })
+  //   var newFileName = "?";
+  //   var oldFileName = "??";
+  //   var watcher = fs.watch(path)
+  //   watcher.on('change',function(event,filename){
+  //     if(event=="rename"){
+  //       fs.readdir(path,function(err,files){
+  //         if(files.indexOf(filename)==-1){
+  //           db.removeDocsFromDb(indexCollection,{"file":filename},function(){})
+  //           return;
+  //         }
+  //         oldFileName = newFileName;
+  //         newFileName = filename;
+  //         if(oldFileName != "?" && oldFileName!=newFileName){
+  //           db.findDocsInDb(indexCollection,{"file":oldFileName},{},function(data){
+  //             if(data.length==0){
+  //               var index = [{chiptype:chiptype,file:oldFileName,error:false,parsed:false}]
+  //               db.writeDocsToDb(indexCollection,index,function(){})
+  //             } else {
+  //               console.log("error online indexing")
+  //             }
+  //           })
+  //         }
+  //       })
+  //     }
+  //   });
+  // })
 };
 
-
-
-
-
-var doWork = function(data,collection,info,chiptype){
-  var null_mean_delta = 10; //порог при привышении которого считаем что есть сигнал
-	var getMaxOfArray = function(array){
-		return Math.max.apply(null,array);
-	};
-	var findAvg = function(array){
-		var sum = 0.0;
-		for (var i in array){
-			sum+=array[i];
-		}
-		return sum/array.length;
-	};
-	var findNoise = function(array,zline){
-		var noises = []
-		for (var i in array){
-			if(array[i]>zline){
-				noises.push(array[i])
-			}
-		}
-		return {
-			maxNoise:getMaxOfArray(noises),
-			avgNoise:findAvg(noises)
-		}
-	};
-	var signals = [];
-  for (var i in data){
-    var pack = data[i];
-    for (var j in pack.signal){
-      var sig = pack.signal[j];
-      var mean = findAvg(sig) //  среднее сигнала
-      var max = getMaxOfArray(sig); // максимум амплитуды сигнала
-      var delta = max - mean;
-      if(delta>null_mean_delta){
-        var zsig = sig.slice(10,150);
-        var zline = findAvg(zsig);
-        var noise = findNoise(zsig,zline)
-        signals.push({
-          channel:j,
-          signal:sig,
-          time:pack.time,
-          max:max,
-          avg:mean,
-          zero_line:zline,
-          noise:noise
-        });
-      }
-    }
-  }
-
-  for(var i in signals){
-    var sig = signals[i];
-    sig.max -= sig.zero_line;
-    for (var j in sig.signal){
-      sig.signal[j]-=sig.zero_line;
-    }
-  }
-  console.log(signals.length);
-  doEvent(signals,collection,info,chiptype)
-  signals = []
-}
-
-
-var doEvent = function(data,collection,info,chiptype){
-
-  var getMinOfArray = function(array){
-  	return Math.min.apply(null,array);
-  };
-
-  var getMaxOfArray = function(array){
-  	return Math.max.apply(null,array);
-  };
-  var events = [];
-	var lvl = 5;
-	for(var i in data){
-		var event = {
-      chip:chiptype,
-      timestamp:info.filestat.birthtime,
-			channel:data[i].channel,
-			time:data[i].time,
-			max:data[i].max,
-			zero_line:data[i].zero_line,
-			noise:data[i].noise,
-			min:getMinOfArray(data[i].signal),
-// 			integrals:findQs(data[i].signal,lvl,data[i].max),
-			// derivative:findDerivative(data[i].signal,lvl,data[i].max),
-			avg:data[i].avg
-		};
-		// event.dwh = findDWH(event.derivative);
-		// event.derivative = [];
-		events.push(event);
-	}
-  db.writeDocsToDb(collection,events,function(){
-    if(info.finished){
-      db.findDocsInDb(collection,{"chip":chiptype,"timestamp":events[0].timestamp},{},function(data){
-        writeCrToTxt(data)
-      });
-      var date = new Date(events[0].timestamp.getFullYear(),events[0].timestamp.getMonth(),events[0].timestamp.getDate())
-      // console.log(date);
-      // console.log(events[0].timestamp)
-      db.findDocsInDb(collection,{"chip":chiptype,"timestamp":{"$gte":date}},{},function(data){
-        // console.log(data)
-        writeSpToTxt(data)
-      });
-    }
-  });
-}
+// parser.parseFileByPart(path+oldFileName,format,function(data,info){
+//   var signals = uran.packs_process_100mhz(data,20,32,true)
+//   var events = uran.neutron_event(signals,0.1,chiptype,info.)
+//   signals = null
+//   db.writeDocsToDb(collection,events,function(){
+//     if(info.finished){
+//       db.findDocsInDb(collection,{"chip":chiptype,"timestamp":events[0].timestamp},{},function(data){
+//         writeCrToTxt(data)
+//       });
+//       var date = new Date(events[0].timestamp.getFullYear(),events[0].timestamp.getMonth(),events[0].timestamp.getDate())
+//       db.findDocsInDb(collection,{"chip":chiptype,"timestamp":{"$gte":date}},{},function(data){
+//         writeSpToTxt(data)
+//       });
+//       events = null
+//     }
+//   });
+//   data = null; info = null;
+// })
 
 var writeSpToTxt = function(data){
   var prevMaxs = [0,0,0,0,0,0,0,0,0,0,0,0];
   var sp = [[],[],[],[],[],[],[],[],[],[],[],[]];
-  var filename = "e:\\БААК100\\100 "+data[0].chip+" плата с запуском нового файла по таймеру\\ADC_12CH\\txt\\sp\\"+"SP__"+data[0].timestamp.getDate()+(data[0].timestamp.getMonth()+1)+
+  var filename = "resources/txts/"+data[0].chiptype+"/sp/"+"SP__"+data[0].timestamp.getDate()+(data[0].timestamp.getMonth()+1)+
     data[0].timestamp.getFullYear()+".dat";
 
   var createSp = function(event,channel){
@@ -184,7 +185,9 @@ var writeSpToTxt = function(data){
                 sp[channel].push([j,0])
             }
         }
-        sp[channel][max][1]++;
+        if(sp[channel][max]!=undefined){
+          sp[channel][max][1]++;
+        }
     }
   }
   for (var i in data){
@@ -220,7 +223,7 @@ var writeSpToTxt = function(data){
 }
 
 var writeCrToTxt = function(data){
-  var filename = "e:\\БААК100\\100 "+data[0].chip+" плата с запуском нового файла по таймеру\\ADC_12CH\\txt\\cr\\"+"CR__"+data[0].timestamp.getDate()+(data[0].timestamp.getMonth()+1)+
+  var filename = "resources/txts/"+data[0].chiptype+"/cr/"+"CR__"+data[0].timestamp.getDate()+(data[0].timestamp.getMonth()+1)+
     data[0].timestamp.getFullYear()+".dat";
   fs.stat(filename,function(err){
     var str = "\n"+data[0].timestamp.getDate()+"-"+(data[0].timestamp.getMonth()+1)+"-"+data[0].timestamp.getFullYear()+" "+data[0].timestamp.getHours()+":"+data[0].timestamp.getMinutes()+"\t"

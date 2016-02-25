@@ -4,12 +4,12 @@ var aprox = function(data,power){
 	var b = [] //столбец свободных членов
 	var x=[],y=[];
 	var sums = [];//суммы степеней x,y при неизвестных коэффициентах полинома
-	
+
 	for(var i=0;i<N;i++){
 		x.push(i+1);
 		y.push(data[i]);
 	}
-	
+
 	for(var i=0; i<K+1; i++){
        	a[i]=0;
 	   	b[i]=0;
@@ -19,7 +19,7 @@ var aprox = function(data,power){
 			sums[i].push(0);
        	}
    }
-	
+
 	for(var i=0;i<K+1;i++){
 		for(var j=0;j<K+1;j++){
 // 			sums.push([]);
@@ -30,13 +30,13 @@ var aprox = function(data,power){
 			}
 		}
 	}
-	
+
 	for(var i=0;i<K+1;i++){
 		for(var j=0;j<N;j++){
 			b[i] += Math.pow(x[j],i)*y[j];
 		}
 	}
-	
+
 	var temp = 0;
 	for(var i=0;i<K+1;i++){
 		if(sums[i][i]==0){
@@ -52,11 +52,11 @@ var aprox = function(data,power){
 			   		b[j] = b[i];
 			   		b[i] = temp;
 			   		break;
-	       		}	
+	       		}
 	   		}
        }
 	}
-	
+
 	for(var k=0; k<K+1; k++){
 		for(var i=k+1; i<K+1; i++){
 			if(sums[k][k]==0){
@@ -70,7 +70,7 @@ var aprox = function(data,power){
 			b[i] -= M*b[k];
 		}
 	}
-	
+
 	for(var i=(K+1)-1; i>=0; i--){
 		var s = 0;
 		for(var j = i; j<K+1; j++){
@@ -84,32 +84,33 @@ var aprox = function(data,power){
 
 
 var funcs = function(sigs){
+	var b = 10
 	var results = [];
 	for (var i in sigs){
 		var sig = sigs[i];
-		var a = aprox(sig,10);
+		var a = aprox(sig,b);
 		var g = [];
 		for(var x=0;x<sig.length;x++){
-			var y = a[1];
-			for (var i =1; i<50;i++){
+			var y = a[0];
+			for (var i =1; i<=b;i++){
 				y += a[i]*Math.pow(x,i);
 			}
 		    g.push([x,y])
 		}
 		results.push(g);
-	} 
+	}
 	return results;
 }
 
 
 
 System.ondata(function(data){
-	
+
     log(data[0].signal.length)
     var f = [];
     var sigs = [];
     for (var i in data){
-        if(data[i].channel == 0){
+        if(data[i].channel == 1){
             sig=data[i].signal;
             sigs.push(sig);
             if(sigs.length == 3){
@@ -119,17 +120,6 @@ System.ondata(function(data){
     }
     f = funcs(sigs)
     log("done");
-	
+
 	System.push(f);
 });
-
-
-
-
-
-
-
-
-
-
-
