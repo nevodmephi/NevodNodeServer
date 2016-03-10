@@ -2,24 +2,40 @@ var fs = require('fs'),
     parser = require("./parser.js"),
     db = require("./db.js"),
     uran = require("./uran.js")
-    heapdump = require("./heapdump.js").init("resources/")
+    heapdump = require("./heapdump.js").init("resources/"),
+    vm = require("vm"),
+    kernel = require("./kernel.js")
 
-process.on("message",function(msg){
-  switch (msg) {
-    case "bgParsing-100":
-      try {
-        // watchForChanges("resources/shared/100mhz/","100Mhz","chip100","181")
-        watchForChanges("e:\\БААК100\\100 181 плата с запуском нового файла по таймеру и порог\\ver.1.1\\ADC_12CH\\bin\\Debug\\","100Mhz","chip100","182");
-        // watchForChanges("e:\\БААК100\\100 183 плата с запуском нового файла по таймеру\\ADC_12CH\\bin\\Debug\\","100Mhz","chip100","183");
-      } catch(e) {
-        console.log(e);
-        process.exit();
-      }
+process.on("message",function(data){
+  // console.log(data)
+  switch (data.task) {
+    case "run-scheme":
+    console.log("run scheme")
+      var vmcontext = new vm.createContext(kernel.kernel(data.name))
+      console.log(data.vmc)
+      vm.runInContext(data.vmc,vmcontext)
+      console.log(vm)
       break;
     default:
-    console.log("CP: unkown task")
-    process.exit();
+      console.log("CP: unkown task")
+      process.exit();
   }
+  // var msg = JSON.parse(data)
+  // switch (msg) {
+  //   case "bgParsing-100":
+  //     try {
+  //       watchForChanges("resources/shared/100mhz/","100Mhz","chip100","181")
+  //       // watchForChanges("e:\\БААК100\\100 181 плата с запуском нового файла по таймеру и порог\\ver.1.1\\ADC_12CH\\bin\\Debug\\","100Mhz","chip100","182");
+  //       // watchForChanges("e:\\БААК100\\100 183 плата с запуском нового файла по таймеру\\ADC_12CH\\bin\\Debug\\","100Mhz","chip100","183");
+  //     } catch(e) {
+  //       console.log(e);
+  //       process.exit();
+  //     }
+  //     break;
+  //   default:
+  //   console.log("CP: unkown task")
+  //   process.exit();
+  // }
 });
 
 

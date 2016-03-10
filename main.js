@@ -6,7 +6,7 @@ var io = require("socket.io"),
 
 const child_process = require("child_process");
 var children = [];
-createChildProcess("bgParsing-100");
+// createChildProcess("bgParsing-100");
 
 
 //http server part

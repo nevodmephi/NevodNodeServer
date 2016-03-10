@@ -1,8 +1,10 @@
 //virtual machine module
 
 var db = require("./db.js"),
-    parser = require("./parser.js"),
-    vm = require("vm");
+    parser = require("./parser.js")
+    // vm = require("vm")
+
+const child_process = require("child_process");
 
 var state = 0;
 
@@ -72,6 +74,12 @@ module.exports = {
         try {
           this.schemes[i].vm = new vm.createContext(kernel(socket,this.schemes[i].name));
           vm.runInContext(this.schemes[i].vmc,this.schemes[i].vm);
+          console.log(this.schemes[i].vmc)
+          console.log(this.schemes[i].vm)
+
+          // const child = child_process.fork("./modules/bg_server.js")
+          // child.send({task:"run-scheme",vmc:this.schemes[i].vmc,name:this.schemes[i].name})
+
         } catch (e) {
           console.log(e)
           this.schemes[i].status = "dead";
@@ -110,70 +118,71 @@ module.exports = {
       }
     }
     return false;
+  },
+  kernel:function(name) {
+    var k = new Object();
+    k.System = new Object();
+    k.Parser = new Object();
+    k.Stat = new Object();
+    k.Online = new Object();
+    k.Uran = require("./uran.js");
+    k.log = function(text) {
+      console.log(text);
+    };
+    k.System.push = function(blocks,data) {
+      for(var i in blocks) {
+        k[blocks[i]] = data;
+      }
+    };
+    k.System.ondata = function(__THISBLOCK,callback) {
+      k.__defineSetter__(__THISBLOCK,callback);
+    };
+    k.finish = function() {
+      module.exports.io.sockets.emit("scheme-finished");
+    };
+    k.System.raiseError = function() {
+      for(var i in module.exports.schemes) {
+        if(module.exports.schemes[i].name == name) {
+          module.exports.schemes[i].errors++;
+        }
+      }
+    };
+    k.System.thread = function(offset,callback) {
+      var cb_errhandling = function(){
+        try {
+          callback();
+        } catch (e) {
+          console.log(e)
+        }
+      }
+      setTimeout(cb_errhandling,offset);
+    };
+    k.System.saveToDb = function(data,collection,callback){
+       db.writeDocsToDb(collection,data,callback);
+    };
+    k.System.findInDb = function(collection,query,sorting,callback){
+       db.findDocsInDb(collection,query,sorting,callback);
+    };
+    k.Parser.parse100Mhz = function(path,callback) {
+       parser.parseWholeFileSync(path,"100Mhz",callback);
+    };
+    k.Parser.parse200MhzTail = function(path,callback) {
+       parser.parseWholeFileSync(path,"200Mhz_tail",callback);
+    };
+    k.Parser.parse200MhzNoTail = function(path,callback){
+       parser.parseWholeFileSync(path,"200Mhz_notail",callback);
+    };
+    k.Online.quickView = function(data,legend,axes,type) {
+      //  socket.emit('quick-view',{data: data,legend: legend, axes: axes,type:type});
+    };
+    k.Online.controllState = function(data){
+      //  socket.emit('controll-state',{data:data});
+    };
+    return k;
   }
 }
 
-function kernel(socket,name) {
-  var k = new Object();
-  k.System = new Object();
-  k.Parser = new Object();
-  k.Stat = new Object();
-  k.Online = new Object();
-  k.Uran = require("./uran.js")
-  k.log = function(text) {
-    console.log(text);
-  }
-  k.System.push = function(blocks,data) {
-    for(var i in blocks) {
-      k[blocks[i]] = data;
-    }
-  }
-  k.System.ondata = function(__THISBLOCK,callback) {
-    k.__defineSetter__(__THISBLOCK,callback);
-  }
-  k.finish = function() {
-    module.exports.io.sockets.emit("scheme-finished");
-  }
-  k.System.raiseError = function() {
-    for(var i in module.exports.schemes) {
-      if(module.exports.schemes[i].name == name) {
-        module.exports.schemes[i].errors++;
-      }
-    }
-  }
-  k.System.thread = function(offset,callback) {
-    var cb_errhandling = function(){
-      try {
-        callback();
-      } catch (e) {
-        console.log(e)
-      }
-    }
-    setTimeout(cb_errhandling,offset);
-  }
-  k.System.saveToDb = function(data,collection,callback){
-     db.writeDocsToDb(collection,data,callback);
-  }
-  k.System.findInDb = function(collection,query,sorting,callback){
-     db.findDocsInDb(collection,query,sorting,callback);
-  }
-  k.Parser.parse100Mhz = function(path,callback) {
-     parser.parseWholeFileSync(path,"100Mhz",callback);
-  }
-  k.Parser.parse200MhzTail = function(path,callback) {
-     parser.parseWholeFileSync(path,"200Mhz_tail",callback);
-  }
-  k.Parser.parse200MhzNoTail = function(path,callback){
-     parser.parseWholeFileSync(path,"200Mhz_notail",callback);
-  }
-  k.Online.quickView = function(data,legend,axes,type) {
-     socket.emit('quick-view',{data: data,legend: legend, axes: axes,type:type});
-  }
-  k.Online.controllState = function(data){
-     socket.emit('controll-state',{data:data});
-  }
-  return k;
-}
+
 
 function parseCode(code,block,connections) {
   c = code;

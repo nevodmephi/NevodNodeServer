@@ -1,8 +1,14 @@
 
 
 System.thread(1000,function() {
-	Parser.parse100Mhz("resources/shared/long.bin",function(data) {
-		var signals = Uran.packs_process_100mhz(data,20,32,true)
-		System.push(signals)
+	d = []
+	Parser.parse100Mhz("resources/shared/test_t4.bin",function(data) {
+		var signals = Uran.packs_process_100mhz(data,20,32,false)
+// 		log("done")
+		d=d.concat(signals)
+// 		log(data.length)
+// 		System.push(signals)
 	})
+	log(d.length)
+	System.push(d)
 });
