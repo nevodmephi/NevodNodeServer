@@ -1,6 +1,6 @@
 {
   "name": "uran-server",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "server for nevod uran",
   "main": "main.js",
   "dependencies": {
@@ -21,7 +21,8 @@
   "keywords": [
     "NEVOD",
     "URAN",
-    "neutron"
+    "neutron",
+    "EAS"
   ],
   "author": "",
   "license": "ISC",

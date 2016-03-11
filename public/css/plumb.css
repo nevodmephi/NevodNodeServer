@@ -37,6 +37,7 @@ thead {
     width: 8000px;
     height: 8000px;
     touch-action:none;
+		visibility: hidden;
 }
 
 .w {
@@ -204,6 +205,11 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
     visibility: hidden;
     overflow: auto;
 }
+
+#constructor-navbar{
+	visibility: hidden;
+}
+
 
 #controll-container {
     position: fixed;

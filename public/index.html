@@ -18,20 +18,23 @@
         			<table><tr><td><img alt="Brand" src="/img/logo_small.png"></td><td>&nbsp;&nbsp;<b>КРАН<sup>&nbsp;&alpha;</sup></b></td></tr></table>
       			</a>
       <ul class="nav navbar-nav">
-	    <li id="btnEasyMode">
-          <a id="emodeid" href="#" class="dropdown-toggle sliding-u-l-r" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('esmode')">Быстрая обработка</a>
-        </li>
-        <li class="active" id="btnConstructor">
-          <a id="btnconstrid" href="#" class="dropdown-toggle sliding-u-l-r sliding-u-l-r-active" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('constructor')">Схема обработки</a>
+	      <li class="active" id="btnEasyMode">
+          <a id="emodeid" href="#" class="dropdown-toggle sliding-u-l-r sliding-u-l-r-active" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('esmode')">Обработка</a>
         </li>
         <li id="btnScreen">
           <a id="btnscreenid" href="#" class="dropdown-toggle sliding-u-l-r" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('screen')">Визуализатор</a>
         </li>
+        <li id="btncontroll">
+          <a id="btnsetid" href="#" class="dropdown-toggle sliding-u-l-r" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('controll')">Контроль состояний ШАЛ</a>
+        </li>
+        <li id="btnEasyMode">
+          <a id="emodeid" href="#" class="dropdown-toggle sliding-u-l-r" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('esmode')">Настройки</a>
+        </li>
         <li id="btnLog">
           <a id="btnlogid" href="#" class="dropdown-toggle sliding-u-l-r" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('log')">База данных</a>
         </li>
-        <li id="btncontroll">
-          <a id="btnsetid" href="#" class="dropdown-toggle sliding-u-l-r" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('controll')">Контроль состояний</a>
+        <li id="btnConstructor">
+          <a id="btnconstrid" href="#" class="dropdown-toggle sliding-u-l-r" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('constructor')">Схема обработки (DEPRICATED!!)</a>
         </li>
       </ul>
                 <div class="btn-group pull-right" role="group" aria-label="...">
@@ -40,9 +43,14 @@
             </div>
         </nav>
 
-<div class="demo statemachine-demo" id="statemachine-demo"></div>
+<div class="processing-container">
+  <div class="eas-controll-container"></div>
+  <div class="neutron-controll-container"></div>
+</div>
 
-<nav class="navbar navbar-inverse navbar-default navbar-fixed-bottom" id="constructor-navbar">
+<div class="demo statemachine-demo" id="statemachine-demo" ></div>
+
+<nav class="navbar navbar-inverse navbar-default navbar-fixed-bottom" id="constructor-navbar" display=none>
 
   <div class="container">
     <div class="btn-group dropup">
