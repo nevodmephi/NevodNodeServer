@@ -1,0 +1,13 @@
+{
+  "type":"neutron",
+  "settings":{
+    "save-folder":"./resources/txt/",
+    "bin-folder":"./resources/shared/",
+    "watching-folder":"./resources/shared/100Mhz/",
+    "parser-chunk-size":100000
+  },
+  "protected":{
+    "parser-chunk-size-min":100000,
+    "parser-chunk-size-max":2000000
+  }
+}

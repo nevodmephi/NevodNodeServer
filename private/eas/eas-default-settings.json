@@ -1,0 +1,12 @@
+{
+  "type":"eas",
+  "settings":{
+    "save-folder":"./resources/txt/",
+    "bin-folder":"./resources/shared/",
+    "parser-chunk-size":100000
+  },
+  "protected":{
+    "parser-chunk-size-min":100000,
+    "parser-chunk-size-max":2000000
+  }
+}
