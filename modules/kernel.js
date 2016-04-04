@@ -1,192 +1,121 @@
-//virtual machine module
+//kernel module
 
-var db = require("./db.js"),
-    parser = require("./parser.js")
-    // vm = require("vm")
+const db = require("./db.js"),
+      fs = require("fs");
+var _task = null
+const child_process = require("child_process"),
+      spawn = child_process.spawn;
 
-const child_process = require("child_process");
+module.exports.settings = null
+module.exports.io = null
+module.exports.processes = []
 
-var state = 0;
+module.exports.init = function(task){
+  _task = task
+}
 
-var STR = [
-  "Схема с таким именем уже существует!",
-  "Такая схема уже существует: "
-]
+module.exports.load = function(){
+  db.findDocsInDb('settings',{'type':_task},{},{},function(data){
+    if(data.length==0){
+      var settings = JSON.parse(fs.readFileSync('./private/'+_task+'/'+_task+'-default-settings.json').toString())
+      module.exports.settings = settings
+      db.writeDocsToDb("settings",[settings],function(){
+        console.log("default kernel loading successful")
+        run()
+      })
+    } else {
+      module.exports.settings = data[0]
+      console.log("kernel loading successful")
+      run()
+    }
+  })
+}
 
-module.exports = {
-  io:null,
-  schemes:[],
-  installScheme:function(socket,scheme) {
-    var newScheme = new Object();
-    for(var i in this.schemes) {
-      if(scheme.name == this.schemes[i].name) {
-        socket.emit('scheme-wrong',{error: STR[0]});
-        return false;
-      }
-      if(JSON.stringify(scheme.blocks) == JSON.stringify(this.schemes[i].blocks)) {
-        socket.emit('scheme-wrong',{error: (STR[1] + this.schemes[i].name)});
-        return false;
-      };
-    }
-    newScheme = {
-      status: "stopped",
-      name: scheme.name,
-      errors: 0,
-      blocks: scheme.blocks
-    }
-    this.schemes.push(newScheme);
-    this.io.sockets.emit('scheme-installed',{name: scheme.name});
-    return true;
-  },
-  removeScheme:function(socket,name) {
-    for(var i in this.schemes) {
-      if(name == this.schemes[i].name) {
-        this.schemes.splice(i);
-        this.io.sockets.emit('scheme-removed',{name: name});
-        return true;
-      }
-    }
-    return false;
-  },
-  downloadScheme:function(socket,name) {
-    var data = new Object();
-    for(var i in this.schemes) {
-      if(name == this.schemes[i].name) {
-        data.name = this.schemes[i].name;
-        data.blocks = this.schemes[i].blocks;
-        socket.emit('scheme-downloaded',{scheme: data});
-        return true;
-      }
-    }
-    return false;
-  },
-  runScheme:function(socket,name) {
-    for(var i in this.schemes) {
-      if(name == this.schemes[i].name) {
-        if(this.schemes[i].vmc == undefined) {
-          this.schemes[i].vmc = "";
-        }
-        //console.log(this.schemes[i]);
-        for(var j in this.schemes[i].blocks) {
-          this.schemes[i].vmc += parseCode(this.schemes[i].blocks[j].code,this.schemes[i].blocks[j].id,this.schemes[i].blocks[j].connects) + "\n\n\n";
-        }
-        // console.log(this.schemes[i].vmc);
-        try {
-          this.schemes[i].vm = new vm.createContext(kernel(socket,this.schemes[i].name));
-          vm.runInContext(this.schemes[i].vmc,this.schemes[i].vm);
-          console.log(this.schemes[i].vmc)
-          console.log(this.schemes[i].vm)
-
-          // const child = child_process.fork("./modules/bg_server.js")
-          // child.send({task:"run-scheme",vmc:this.schemes[i].vmc,name:this.schemes[i].name})
-
-        } catch (e) {
-          console.log(e)
-          this.schemes[i].status = "dead";
-          this.io.sockets.emit('scheme-dead',{name: name, error: e.toString()});
-          return false;
-        }
-        if(this.schemes[i].errors == 0) {
-          this.schemes[i].status = "stable working";
-        } else {
-          this.schemes[i].status = "unstable working";
-        }
-        this.io.sockets.emit('scheme-ran',{name: name, status: this.schemes[i].status});
-        return true;
-      }
-    }
-    return false;
-  },
-  pauseScheme:function(socket,name) {
-    for(var i in this.schemes) {
-      if(name == this.schemes[i].name) {
-        this.schemes[i].status = "paused";
-        this.io.sockets.emit('scheme-paused',{});
-        return true;
-      }
-    }
-    return false;
-  },
-  stopScheme:function(socket,name) {
-    for(var i in this.schemes) {
-      if(name == this.schemes[i].name) {
-        if(this.schemes[i].vmc !== undefined) {delete this.schemes[i].vmc;};
-        if(this.schemes[i].data !== undefined) {delete this.schemes[i].data;};
-        this.schemes[i].status = "stopped";
-        this.io.sockets.emit('scheme-stopped',{name: name});
-        return true;
-      }
-    }
-    return false;
-  },
-  kernel:function(name) {
-    var k = new Object();
-    k.System = new Object();
-    k.Parser = new Object();
-    k.Stat = new Object();
-    k.Online = new Object();
-    k.Uran = require("./uran.js");
-    k.log = function(text) {
-      console.log(text);
-    };
-    k.System.push = function(blocks,data) {
-      for(var i in blocks) {
-        k[blocks[i]] = data;
-      }
-    };
-    k.System.ondata = function(__THISBLOCK,callback) {
-      k.__defineSetter__(__THISBLOCK,callback);
-    };
-    k.finish = function() {
-      module.exports.io.sockets.emit("scheme-finished");
-    };
-    k.System.raiseError = function() {
-      for(var i in module.exports.schemes) {
-        if(module.exports.schemes[i].name == name) {
-          module.exports.schemes[i].errors++;
-        }
-      }
-    };
-    k.System.thread = function(offset,callback) {
-      var cb_errhandling = function(){
-        try {
-          callback();
-        } catch (e) {
-          console.log(e)
-        }
-      }
-      setTimeout(cb_errhandling,offset);
-    };
-    k.System.saveToDb = function(data,collection,callback){
-       db.writeDocsToDb(collection,data,callback);
-    };
-    k.System.findInDb = function(collection,query,sorting,callback){
-       db.findDocsInDb(collection,query,sorting,callback);
-    };
-    k.Parser.parse100Mhz = function(path,callback) {
-       parser.parseWholeFileSync(path,"100Mhz",callback);
-    };
-    k.Parser.parse200MhzTail = function(path,callback) {
-       parser.parseWholeFileSync(path,"200Mhz_tail",callback);
-    };
-    k.Parser.parse200MhzNoTail = function(path,callback){
-       parser.parseWholeFileSync(path,"200Mhz_notail",callback);
-    };
-    k.Online.quickView = function(data,legend,axes,type) {
-      //  socket.emit('quick-view',{data: data,legend: legend, axes: axes,type:type});
-    };
-    k.Online.controllState = function(data){
-      //  socket.emit('controll-state',{data:data});
-    };
-    return k;
+var run = function(){
+  if(_task=="neutron"){
+    module.exports.runBGProcess({proc:"node",options:{tasks:['watch'],chiptype:182}})
   }
 }
 
+module.exports.updateSettings = function(data){
+  for(i in data){
+    var set = data[i]
+    module.exports.settings["settings"][set.field]=set.val
+  }
+  db.updateCollection('settings',{"type":_task},{$set:module.exports.settings},false,function(){
+    console.log("update settings successful")
+  })
+}
 
+module.exports.getBinFiles = function(callback){
+  fs.readdir(module.exports.settings["settings"]['bin-folder'],function(err,files){
+    if(err){
+      console.log(err)
+    } else {
+      var binfiles = []
+      for(var i in files){
+        if(files[i].slice(files[i].length-4,files[i].length)==".bin"){
+          binfiles.push(files[i])
+        }
+      }
+      callback(binfiles)
+    }
+  })
+}
 
-function parseCode(code,block,connections) {
-  c = code;
-  c = c.split("System.push(").join("System.push(" + JSON.stringify(connections) + ",");
-  c = c.split("System.ondata(").join("System.ondata(\"" + block + "\",");
-  return c;
+module.exports.getDBCollections = function(options,callback){
+  db.getCollections(options,callback)
+}
+
+module.exports.getDataFromDB = function(opts,callback){
+  db.findDocsInDb(opts.collection,opts.query,opts.sorting,opts.projection,callback)
+}
+
+module.exports.runBGProcess = function(config){
+  var env = Object.create(process.env)
+  env.options__ = JSON.stringify(config.options)
+  env.settings = JSON.stringify(module.exports.settings['settings'])
+  const proc = spawn(config.proc,[_task+'/'+_task+'-workout.js'],{cwd:'./private/',env:env})
+  proc.fname = config.options['file']
+  module.exports.processes.push(proc)
+  module.exports.io.emit('proc-run','{"filename":"'+proc.fname+'","pid":"'+proc.pid+'","type":"'+config.options['type']+'"}')
+  proc.stdout.on('data',function(data){
+    var msgs = data.toString().split(";")
+    for(var i in msgs){
+      var msg = msgs[i]
+      if(msg.length == 0){
+        continue
+      }
+      try {
+        msg = JSON.parse(msg)
+      } catch(e) {
+        console.log("error parsing proc msg: "+msg)
+        continue
+      }
+      switch (msg["type"]) {
+        case "finished":
+          module.exports.io.emit('proc-finished-success','{"pid":"'+proc.pid+'","filename":"'+config.options.file+'"}')
+          break;
+        case "memory":
+          module.exports.io.emit('proc-ram','{"pid":"'+proc.pid+'","ram":"'+Math.round( msg["value"] * 10 ) / 10+'"}')
+          break;
+        case "percent":
+          module.exports.io.emit('proc-status','{"pid":"'+proc.pid+'","value":"'+Math.round( msg["value"] * 10 ) / 10+'"}')
+          break;
+        default:
+          console.log("other message type: "+data)
+      }
+    }
+  })
+  proc.stderr.on('data',function(err){
+    console.log(err+"")
+    module.exports.io.emit('proc-error','{"pid":"'+proc.pid+'","error":"'+err+'"}')
+  })
+  proc.on('close',function(code){
+    module.exports.io.emit('proc-closed',proc.pid)
+    module.exports.processes.splice(module.exports.processes.indexOf(proc), 1)
+    proc = null
+    console.log("proc closed")
+
+  })
 }

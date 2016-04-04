@@ -19,10 +19,10 @@ module.exports = {
 		});
 	},
 
-	findDocsInDb:function(collection,query,sorting,callback){
+	findDocsInDb:function(collection,query,sorting,projection,callback){
 		MongoClient.connect(mongoURL,function(err,db){
 			assert.equal(null,err);
-			findDocs(db,collection,query,sorting,function(docs){
+			findDocs(db,collection,query,sorting,projection,function(docs){
 				db.close();
 				callback(docs);
 			});
@@ -46,7 +46,45 @@ module.exports = {
          callback()
        })
      })
+   },
+   updateCollection:function(collection,query,update,upsert,callback){
+     MongoClient.connect(mongoURL,function(err,db){
+       assert.equal(null,err)
+       updateColl(db,collection,query,update,upsert,function(){
+         db.close()
+         callback()
+       })
+     })
+   },
+   getCollections:function(options,callback){
+     MongoClient.connect(mongoURL,function(err,db){
+       assert.equal(null,err)
+       db.collections(function(error,cols){
+         assert.equal(null,error)
+         var names = []
+         for(var i in cols){
+           if(options.startsWith == "all"){
+              names.push(cols[i].s.name)
+           } else if(cols[i].s.name.startsWith(options.startsWith)){
+              names.push(cols[i].s.name)
+           }
+         }
+         callback(names)
+         db.close()
+       })
+     })
    }
+
+}
+
+
+
+
+//helpers
+var updateColl = function(db,collection,query,update,upsert,callback){
+  db.collection(collection).update(query,update,{upsert:upsert},function(){
+    callback()
+  })
 }
 
 var removeColl = function(db,collection,callback){
@@ -72,8 +110,8 @@ var insertDocuments = function(db,collection_name,docs,callback){
 	});
 }
 
-var findDocs = function(db,collection_name,query,sorting,callback){
-	var cursor = db.collection(collection_name).find(query).sort(sorting);
+var findDocs = function(db,collection_name,query,sorting,projection,callback){
+	var cursor = db.collection(collection_name).find(query,projection).sort(sorting);
 	var docs = [];
 	cursor.each(function(err,doc){
 		assert.equal(null,err);

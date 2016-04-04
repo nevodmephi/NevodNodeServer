@@ -6,10 +6,12 @@
  * @type {exports}
  */
 
-var fs = require('fs');
-var profiler = require('v8-profiler');
+// var fs = require('fs');
+// var profiler = require('v8-profiler');
 var _datadir = null;
 var nextMBThreshold = 0;
+
+var _callback = null
 
 
 /**
@@ -17,8 +19,9 @@ var nextMBThreshold = 0;
  *
  * @param resources/
  */
-module.exports.init = function (datadir) {
-    _datadir = datadir;
+module.exports.init = function (callback) {
+    // _datadir = datadir;
+    _callback = callback
     setInterval(tickHeapDump, 5000);
 };
 
@@ -36,15 +39,16 @@ function tickHeapDump() {
  */
 function heapDump() {
     var memMB = process.memoryUsage().rss / 1048576;
+    _callback(memMB)
 
-    console.log(memMB + '>' + nextMBThreshold);
+    // console.log(memMB + '>' + nextMBThreshold);
 
-    if (memMB > nextMBThreshold) {
-        console.log('Current memory usage: %j', process.memoryUsage());
-        nextMBThreshold += 50;
-        // var snap = profiler.takeSnapshot('profile');
-        // saveHeapSnapshot(snap, _datadir);
-    }
+    // if (memMB > nextMBThreshold) {
+    //     console.log('Current memory usage: %j', process.memoryUsage());
+    //     nextMBThreshold += 50;
+    //     // var snap = profiler.takeSnapshot('profile');
+    //     // saveHeapSnapshot(snap, _datadir);
+    // }
 }
 
 /**

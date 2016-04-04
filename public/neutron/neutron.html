@@ -1,11 +1,97 @@
 <!DOCTYPE html>
 <html>
   <head>
-      <title>Вариации</title>
+      <title>Уран - вариации нейтронов</title>
       <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
       <link href="/neutron.css" rel="stylesheet">
+      <link href="/bootstrap/bootstrap.min.css" rel="stylesheet">
+      <link href="jquery/jquery-ui-1.10.0.custom.css" rel="stylesheet">
   </head>
-  <body>
+  <body onload="main()">
+    <!-- навигация -->
+    <nav class="navbar navbar-default navbar-fixed-top navbar-custom">
+      <a class="navbar-brand" href="#"><table><tr><td><img class="logo" alt="Uran" src="/images/uran-logo.png"></td><td>&nbsp;&nbsp;<b class="project-name">Варицаии</b>&nbsp;&nbsp;</td></tr></table></a>
+      <ul class="nav navbar-nav">
+        <li class="active" id="id_main-menu">
+          <a id="id_main-menu-tab" class="navbar-button-custom navbar-button sliding-tab sliding-tab-active" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('main-menu')">Главное меню</a>
+        </li>
+        <li id="id_osc">
+          <a id="id_osc-tab" class="navbar-button-custom navbar-button sliding-tab" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('osc')">Осцилограф</a>
+        </li>
+        <li id="id_bd">
+          <a id="id_bd-tab" class="navbar-button-custom navbar-button sliding-tab" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('bd')">База данных</a>
+        </li>
+        <li id="id_settings">
+          <a id="id_settings-tab" class="navbar-button-custom navbar-button sliding-tab" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('settings')">Настройки</a>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- контейнеры -->
+    <div class="main-menu-container view-container">
+      <div class="parser panel panel-primary panel-custom">
+        <div class="parser-heading panel-heading panel-heading-custom"><b>Парсер</b><img class="info" alt="inf" src="/images/info.png" style="position:relative;left:45%;" title="Парсер для .bin файлов с платы 100Mhz"></div>
+        <div class="parser-body panel-body">
+          <div class="inline btn-group parser-controll" role="group">
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" onclick="browseFiles()">Выбрать файл <span class="caret"></span></button>
+            <ul class="dropdown-menu dropdown-binfiles scrollable-menu"></ul>
+            <div class="inline parser-info">Файл: <b class="bin-name">Не выбран, выбирите файл</b>
+              <button type="button" class="btn btn-warning begin-parse" style="margin-left:30px;" onclick="parseFile()">Начать парсить</button>
+            </div>
+          </div>
+          <div class="inline checkbox parser-type-chooser">
+            <div class="parser-sig-checkbox">
+              <input type="checkbox" class="custom-checkbox_v2" name="parser-save-sigs" id="id_save-sigs"/>
+              <label for="id_save-sigs">Сохранять осцилограмму</label>
+              <img class="info" alt="inf" src="/images/info.png" title="Осцилограмма для каждого события сохраняется в текстовый файл и в базу данных (в отдельную коллекцию)">
+            </div>
+          </div>
+          <div class="panel panel-default parser-proc-view">
+            <div class="panel-heading" style="font-weight: 600 !important;">Процессы в работе</div>
+            <table class="table">
+              <thead class="parser-table"><th style="width:20%">Название файла</th><th style="width:45%">Состояние</th><th>Время прошло</th><th>Tип файла</th><th>RAM Usage, MB</th><th></th></thead>
+              <tbody class="parser-tbody"><tr id="id_no-procs"><td style="width:20%; border:0px;">нет запущенных процессов</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="osc-container view-container">
+      <div class="oscilloscope"></div>
+    </div>
+    <nav class="navbar  navbar-default navbar-fixed-bottom osc-navbar" id="id_osc-navbar">
+      <div class="btn-group pull-right dropup" style="margin-right:50px;" role="group">
+          <button type="button" class="navbar-btn dropdown-toggle  oscs-choose-button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="список всех доступных осциолграмм сигналов, сохраненных в базе данных" onclick="showSavedOscs();"><img class="oscs-choose-button-img"src="/images/osc.png"></button>
+          <ul class="dropdown-menu scrollable-menu dropdown-oscs-files"></ul>
+      </div>
+    </nav>
+
+    <div class="bd-container view-container">
+      база данных
+    </div>
+
+    <div class="settings-container view-container">
+      <div id="id_save-folder-info">
+        Куда сохраняется текстовый файл: <span id="id_save-path"></span>
+        <button onclick="changeSettings('save-folder',$('#id_new-save-path'))">Изменить</button>
+        <input id="id_new-save-path" size="50">
+      </div>
+      <div id="id_bin-folder-info">
+        Откуда загружается bin файл: <span id="id_bin-path"></span>
+        <button onclick="changeSettings('bin-folder',$('#id_new-bin-path'))">Изменить</button>
+        <input id="id_new-bin-path" size="50">
+      </div>
+    </div>
+
+    <!-- скрипты -->
+    <script src="/jquery/jquery-2.1.4.min.js"></script>
+    <script src="/bootstrap/bootstrap.min.js"></script>
+    <script src="/jquery/jquery-ui-1.10.0.custom.min.js"></script>
+    <script src="/flot/jquery.flot.js"></script>
+    <script src="/flot/jquery.flot.axislabels.js"></script>
+    <script>document.write('<script src="//'+ location.hostname + ':'+location.port+'/socket.io/socket.io.js">\x3C/script>')</script>
+    <script src="/neutron.js"></script>
 
   </body>
 </html>
