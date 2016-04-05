@@ -13,6 +13,7 @@ var main = function(){
     _settings = data
     $("#id_bin-path").html(_settings['settings']['bin-folder'])
     $("#id_save-path").html(_settings['settings']['save-folder'])
+    $("#id_watching-path").html(_settings['settings']['watching-folder'])
   })
   socket.emit("load-settings")
 
