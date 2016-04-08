@@ -34,9 +34,9 @@ module.exports = {
             sig = isUsingSMA ? this.u_math.simple_moving_avarage(pack.signal[j],sma_power) : pack.signal[j]
             max = this.u_math.max_of_array(sig);
             var mean = this.u_math.avarage(sig)
-  					var zsig = sig.slice(10,150);
+  					var zsig = sig.slice(50,300);
   					var zline = this.u_math.avarage(zsig);
-  					signals.push({channel:j,signal:sig,time:pack.time,max:max,avg:mean,zero_lines:zline});
+  					signals.push({channel:j,signal:sig,time:pack.time,max:max,avg:mean,zero_line:zline});
   				}
   			}
         if(isSaveSigs){
@@ -47,9 +47,9 @@ module.exports = {
   		}
   		for(var i in signals){
   			var sig = signals[i];
-  			sig.max -= 2048;//WARN
+  			sig.max -= sig.zero_line;
   			for (var j in sig.signal){
-  				sig.signal[j] -= 2048;//WARN
+  				sig.signal[j] -= sig.zero_line;
   			}
   		}
   		return signals
@@ -71,7 +71,7 @@ module.exports = {
           chiptype:chip,
     			time:data[i].time,
     			max:data[i].max,
-    			zero_lines:data[i].zero_lines,
+    			zero_line:data[i].zero_line,
     			min:this.u_math.min_of_array(data[i].signal),
     			avg:data[i].avg,
           dw:this.u_math.derivativeWidth(this.u_math.derivative(data[i].signal.slice(0,1200)),dwtreshold),

@@ -119,3 +119,139 @@ module.exports.runBGProcess = function(config){
 
   })
 }
+
+
+
+//TESTTESTTESTTEST
+
+// function ttt(){
+//   // db.findDocsInDb(collection,{"chiptype":chiptype,"timestamp":timestamp,$and:["neutron":{$ne:true},"neutronDW":{$ne:true}]},{},{},function(data){
+//   //         // console.log(data.length)
+//   //         writeCrToTxt(data)
+//   //       });
+// console.log("ttt")
+// var timestamp = new Date()
+//   var date = new Date(timestamp.getFullYear(),timestamp.getMonth(),timestamp.getDate())
+//         db.findDocsInDb('chip100_182',{"chiptype":182,"timestamp":{"$gte":date},$or:[{"neutron":{$ne:true}},{"neutronDW":{$ne:true}}]},{},{},function(data){
+//           console.log(data.length)
+//           // var crs = []
+//           // for(var i in data){
+//           //   // console.log(i)
+
+//           //   if(crs.length==0){
+//           //       console.log('pushed '+i)
+//           //       crs.push({"time":data[i].timestamp,data:[data[i]]})
+//           //       // console.log(data[i].timestamp)
+//           //     } else {
+//           //       var found = false
+//           //       for(var j in crs){
+//           //         // var date1 = new Date(crs[j]['time'])
+//           //         // var date2 = new Date(data[i].timestamp)
+//           //         // console.log(crs[j]['time'].getTime()==data[i].timestamp.getTime())
+                  
+//           //         if(crs[j]['time'].getTime()==data[i].timestamp.getTime()){
+//           //           // console.log('found')
+//           //           crs[j]['data'].push(data[i])
+//           //           found = true
+//           //           break
+//           //         }
+//           //       }
+//           //      if(!found){
+//           //      console.log('pushed '+i+"--"+crs.length)
+//           //       crs.push({"time":data[i].timestamp,data:[data[i]]})
+//           //      }
+//           //     }
+            
+//           // }
+//           // console.log(crs.length)
+//           // for(var i in crs){
+//           //   writeCrToTxt(crs[i]['data'])
+//           // }
+//           // writeSpToTxt(data)
+//         })
+
+
+
+//         var writeSpToTxt = function(data){
+//   var prevMaxs = [0,0,0,0,0,0,0,0,0,0,0,0];
+//   var sp = [[],[],[],[],[],[],[],[],[],[],[],[]];
+//   var filename = "./resources/txt/"+data[0].chiptype+"/sp/"+"SPCH__"+data[0].timestamp.getDate()+(data[0].timestamp.getMonth()+1)+
+//     data[0].timestamp.getFullYear()+".dat";
+
+//   var createSp = function(event,channel){
+//     if (event.channel == channel){
+//         var max = Number((event.max).toFixed(0));
+//         max = max < 0 ? -max : max;
+//         var isNewMax = false
+//         if(max>prevMaxs[channel]){
+//             isNewMax = true
+//         prevMaxs[channel] = max
+//         }
+//         if(sp[channel].length == 0){
+//           for (var j=0;j<=max;j++){
+//             sp[channel].push([j,0]);
+//           }
+//         } else if(isNewMax){
+//             for(var j=sp[channel].length;j<=max;j++){
+//                 sp[channel].push([j,0])
+//             }
+//         }
+//         if(sp[channel][max]!=undefined){
+//           sp[channel][max][1]++;
+//         }
+//     }
+//   }
+//   for (var i in data){
+//     var event = data[i];
+//   //    var r = event.integrals.sabove/event.integrals.sunder;
+//     if(true){
+//       for(var ch = 0; ch<12; ch++){
+//         createSp(event,ch);
+//       }
+//     }
+//   }
+//   var str ="N\tCh1\tCh2\tCh3\tCh4\tCh5\tCh6\tCh7\tCh8\tCh9\tCh10\tCh11\tCh12\n";
+
+//   var maxlength = 0;
+//   for(var i=0;i<12;i++){
+//     maxlength = maxlength<sp[i].length ? sp[i].length : maxlength
+//   }
+
+//   for (var i=0;i<maxlength;i++){
+//     str+=i+"\t"
+//     for (var j=0;j<12;j++){
+//       if(sp[j][i]!=undefined){
+//         str+=sp[j][i][1]+"\t";
+//       } else {
+//         str+="0\t";
+//       }
+
+//     }
+//     str+="\n";
+//   }
+//   fs.writeFile(filename,str);
+//   // log("sp_end")
+// }
+
+// var writeCrToTxt = function(data){
+//   var filename = "./resources/txt/"+data[0].chiptype+"/cr/"+"CRCH__"+data[0].timestamp.getDate()+(data[0].timestamp.getMonth()+1)+
+//     data[0].timestamp.getFullYear()+".dat";
+//   fs.stat(filename,function(err){
+//     var str = "\n"+data[0].timestamp.getDate()+"-"+(data[0].timestamp.getMonth()+1)+"-"+data[0].timestamp.getFullYear()+" "+data[0].timestamp.getHours()+":"+data[0].timestamp.getMinutes()+"\t"
+//     if(err){
+//       str ="Time\tCh1\tCh2\tCh3\tCh4\tCh5\tCh6\tCh7\tCh8\tCh9\tCh10\tCh11\tCh12\n"+data[0].timestamp.getDate()+"-"+(data[0].timestamp.getMonth()+1)+"-"+data[0].timestamp.getFullYear()+" "+data[0].timestamp.getHours()+":"+data[0].timestamp.getMinutes()+"\t";
+//     }
+//     var rates = [0,0,0,0,0,0,0,0,0,0,0,0]
+//     for (var i in data){
+//       rates[data[i].channel]++;
+//     }
+//     for (var i in rates){
+//       str+=rates[i]+"\t"
+//     }
+//     fs.appendFile(filename,str)
+//   })
+// }
+// }
+
+
+// ttt()
