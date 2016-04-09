@@ -33,6 +33,7 @@ var workout = {
       },1000)
     }
     if(_tasks.indexOf("parse")!=-1){
+      collection+="_parser"
       parser.parseFileByPart(_settings['bin-folder']+_filename,_filetype,function(data,info){
         if(data==null || data==undefined || data.length==0){
           process.exit()
@@ -43,7 +44,6 @@ var workout = {
           var events = neutron_core.neutron_event(signals,0.1,0.6,chiptype,info.filestat.birthtime)
           signals = null
           var timestamp = info.filestat.birthtime
-          collection+="_parser"
           db.writeDocsToDb(collection,events,function(){
             if(info.finished){
               process.stdout.write('{"type":"finished"};')
