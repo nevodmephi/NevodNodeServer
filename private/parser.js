@@ -15,7 +15,7 @@ var l_tail = 20000*12*2;
 var notail_ending = 'ffffffff';
 var tail_ending = 'eeeeeeeeffffffff';
 
-var chunkSize = 100000
+var chunkSize = 1000000
 var packNum = 0
 
 var writeLog = function(msg,data1,data2){
@@ -67,17 +67,21 @@ module.exports = {
 		fs.open(filename,'r',function(status,fd){
 			if(status){
 				console.log(status.message);
+				fs.close(fd)
 				return;
 			}
 			fs.stat(filename,function(err,stats){
 				if(err){
 					console.log(err)
+					fs.close(fd)
 					return;
 				}
 				var fileLength = stats.size, chunk = fileLength>chunkSize?chunkSize:fileLength, offset = fileLength - chunk,
 					buffer = new Buffer(chunk);
 				if(fileLength==0){
-					callback()
+					fs.close(fd,function(){
+						callback()
+					})
 					return
 				}
 				var readCallback = function(data){
@@ -91,6 +95,7 @@ module.exports = {
 							filestat:stats
 						}
 						if(offset == 0){
+							fs.close(fd)
 							info.finished=true;
 							callback(packs,info);
 							packs = null; info = null;
@@ -106,6 +111,7 @@ module.exports = {
 						fs.read(fd,buffer,0,chunk,offset,function(err,bytesRead,buffer){
 							if(err){
 								console.log(err)
+								fs.close(fd)
 								return;
 							}
 							if(dataleft){
@@ -121,6 +127,7 @@ module.exports = {
 				};
 				fs.read(fd,buffer,0,chunk,offset,function(err,bytesRead,buffer){
 					if(err){
+						fs.close(fd)
 						console.log(err)
 						return;
 					}

@@ -44,6 +44,10 @@ var workout = {
           var events = neutron_core.neutron_event(signals,0.1,0.6,chiptype,info.filestat.birthtime)
           signals = null
           var timestamp = info.filestat.birthtime
+<<<<<<< HEAD
+=======
+          
+>>>>>>> 0037f6e808d3e39400bf4884b63d3d96fcc76259
           db.writeDocsToDb(collection,events,function(){
             if(info.finished){
               process.stdout.write('{"type":"finished"};')
@@ -62,13 +66,14 @@ var workout = {
     } else if(_tasks.indexOf('watch')!=-1){
       var onFinished = function(collection,chiptype,timestamp){
         console.log("parsed")
-        db.findDocsInDb(collection,{"chiptype":chiptype,"timestamp":timestamp,"neutron":true,"neutronDW":true},{},{},function(data){
+        db.findDocsInDb(collection,{"chiptype":chiptype,"timestamp":timestamp},{},{},function(data){
           // console.log(data.length)
           writeCrToTxt(data)
         });
         var date = new Date(timestamp.getFullYear(),timestamp.getMonth(),timestamp.getDate())
-        db.findDocsInDb(collection,{"chiptype":chiptype,"timestamp":{"$gte":date},"neutron":true,"neutronDW":true},{},{},function(data){
+        db.findDocsInDb(collection,{"chiptype":chiptype,"timestamp":{"$gte":date}},{},{},function(data){
           // console.log(data.length)
+          writeZeroLines(data)
           writeSpToTxt(data)
         })
       }
@@ -95,14 +100,28 @@ var workout = {
                   var timestamp = info.filestat.birthtime
                   db.writeDocsToDb(collection,events,function(){
                     if(info.finished){
-                      fs.unlink(path+fileToParse)
+                      // console.log('unlinking '+fileToParse)
+                      // console.log(info)
+                      // fs.close(path+fileToParse)
+                      fs.unlink(path+fileToParse,function(err){
+                        if(err){
+                          console.log("error unlink")
+                        }
+                      })
                       onFinished(collection,chiptype,timestamp)
                     }
                   });
                   data = null;
                 } else if (info.finished){
                   signals = null
-                  fs.unlink(path+fileToParse)
+                  // console.log('unlinking '+fileToParse)
+                  // console.log(info)
+                  // fs.close(path+fileToParse)
+                  fs.unlink(path+fileToParse,function(err){
+                    if(err){
+                      console.log("error unlink")
+                    }
+                  })
                   onFinished(collection,chiptype,info.filestat.birthtime)
                 }
               })
@@ -120,12 +139,14 @@ workout.run()
 
 
 var writeSpToTxt = function(data){
-  var prevMaxs = [0,0,0,0,0,0,0,0,0,0,0,0];
-  var sp = [[],[],[],[],[],[],[],[],[],[],[],[]];
   var filename = "../resources/txt/"+data[0].chiptype+"/sp/"+"SP__"+data[0].timestamp.getDate()+(data[0].timestamp.getMonth()+1)+
     data[0].timestamp.getFullYear()+".dat";
+  var createSP = function(){
+    var prevMaxs = [0,0,0,0,0,0,0,0,0,0,0,0];
+  var sp = [[],[],[],[],[],[],[],[],[],[],[],[]];
+  
 
-  var createSp = function(event,channel){
+  var newSp = function(event,channel){
     if (event.channel == channel){
         var max = Number((event.max).toFixed(0));
         max = max < 0 ? -max : max;
@@ -150,19 +171,36 @@ var writeSpToTxt = function(data){
   }
   for (var i in data){
     var event = data[i];
-  // 		var r = event.integrals.sabove/event.integrals.sunder;
+  //    var r = event.integrals.sabove/event.integrals.sunder;
     if(true){
       for(var ch = 0; ch<12; ch++){
-        createSp(event,ch);
+        newSp(event,ch);
       }
     }
   }
-	var str ="N\tCh1\tCh2\tCh3\tCh4\tCh5\tCh6\tCh7\tCh8\tCh9\tCh10\tCh11\tCh12\n";
+  return sp
+  }
+  var els = []
+  var ns = []
+  for(var i in data){
+    if(data[i].neutron && data[i].neutronDW){
+      ns.push(data[i])
+    } else {
+      els.push(data[i])
+    }
+  }
+
+  var sp = createSP(ns)
+  var sp_el = createSP(els)
+
+	var str ="AMPL\tN1\tE1\tN2\tE2\tN3\tE3\tN4\tE4\tN5\tE5\tN6\tE6\tN7\tE7\tN8\tE8\tN9\tE9\tN10\tE10\tN11\tE11\tN12\tE12\n";
 
 	var maxlength = 0;
 	for(var i=0;i<12;i++){
 		maxlength = maxlength<sp[i].length ? sp[i].length : maxlength
+    maxlength = maxlength<sp_el[i].length ? sp_el[i].length : maxlength
 	}
+
 
 	for (var i=0;i<maxlength;i++){
 		str+=i+"\t"
@@ -172,6 +210,12 @@ var writeSpToTxt = function(data){
 			} else {
 				str+="0\t";
 			}
+      if(sp_el[j][i]!=undefined){
+        str+=sp_el[j][i][1]+"\t";
+      } else {
+        str+="0\t";
+      }
+
 
 		}
 		str+="\n";
@@ -186,14 +230,44 @@ var writeCrToTxt = function(data){
   fs.stat(filename,function(err){
     var str = "\n"+data[0].timestamp.getDate()+"-"+(data[0].timestamp.getMonth()+1)+"-"+data[0].timestamp.getFullYear()+" "+data[0].timestamp.getHours()+":"+data[0].timestamp.getMinutes()+"\t"
     if(err){
-      str ="Time\tCh1\tCh2\tCh3\tCh4\tCh5\tCh6\tCh7\tCh8\tCh9\tCh10\tCh11\tCh12\n"+data[0].timestamp.getDate()+"-"+(data[0].timestamp.getMonth()+1)+"-"+data[0].timestamp.getFullYear()+" "+data[0].timestamp.getHours()+":"+data[0].timestamp.getMinutes()+"\t";
+      str ="Time\tN1\tE1\tN2\tE2\tN3\tE3\tN4\tE4\tN5\tE5\tN6\tE6\tN7\tE7\tN8\tE8\tN9\tE9\tN10\tE10\tN11\tE11\tN12\tE12\n"+data[0].timestamp.getDate()+"-"+(data[0].timestamp.getMonth()+1)+"-"+data[0].timestamp.getFullYear()+" "+data[0].timestamp.getHours()+":"+data[0].timestamp.getMinutes()+"\t";
     }
     var rates = [0,0,0,0,0,0,0,0,0,0,0,0]
+    var el_rates = [0,0,0,0,0,0,0,0,0,0,0,0]
     for (var i in data){
-      rates[data[i].channel]++;
+      if(data[i].neutron && data[i].neutronDW){
+        rates[data[i].channel]++;
+      } else {
+        el_rates[data[i].channel]++;
+      }
     }
     for (var i in rates){
-      str+=rates[i]+"\t"
+      str += rates[i]+"\t"
+      str += el_rates[i]+"\t"
+    }
+    fs.appendFile(filename,str)
+  })
+}
+
+
+var writeZeroLines = function(data){
+  var filename = "../resources/txt/"+data[0].chiptype+"/"+"ZL__"+data[0].timestamp.getDate()+(data[0].timestamp.getMonth()+1)+
+    data[0].timestamp.getFullYear()+".dat";
+  fs.stat(filename,function(err){
+    var str = ""
+    if(err){
+      str ="Time\tZ1\tZ2\tZ3\tZ4\tZ5\tZ6\tZ7\tZ8\tZ9\tZ10\tZ11\tZ12\n"
+    }
+    var z_lines = [[],[],[],[],[],[],[],[],[],[],[],[]]
+    for(var i in data){
+      z_lines[data[i].channel].push(data[i].zero_line)
+    }
+    for(var i=0; i<data[0].length;i++){
+      str+=data[i].timestamp
+      for(var j = 0;j<12;j++){
+        str += z_lines[j][i] + "\t"
+      }
+      str += "\n"
     }
     fs.appendFile(filename,str)
   })
