@@ -120,6 +120,16 @@ module.exports.runBGProcess = function(config){
   })
 }
 
+module.exports.gen_uuid = function(){
+  var d = new Date().getTime();
+    var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = (d + Math.random()*16)%16 | 0;
+        d = Math.floor(d/16);
+        return (c=='x' ? r : (r&0x3|0x8)).toString(16);
+    });
+    return uuid;
+}
+
 
 
 //TESTTESTTESTTEST
@@ -148,7 +158,7 @@ module.exports.runBGProcess = function(config){
 //           //         // var date1 = new Date(crs[j]['time'])
 //           //         // var date2 = new Date(data[i].timestamp)
 //           //         // console.log(crs[j]['time'].getTime()==data[i].timestamp.getTime())
-                  
+
 //           //         if(crs[j]['time'].getTime()==data[i].timestamp.getTime()){
 //           //           // console.log('found')
 //           //           crs[j]['data'].push(data[i])
@@ -161,7 +171,7 @@ module.exports.runBGProcess = function(config){
 //           //       crs.push({"time":data[i].timestamp,data:[data[i]]})
 //           //      }
 //           //     }
-            
+
 //           // }
 //           // console.log(crs.length)
 //           // for(var i in crs){

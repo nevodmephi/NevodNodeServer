@@ -1,329 +1,79 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>КРАН</title>
-        <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
-        <link rel="stylesheet" href="/css/plumb.css">
-        <link href="/img/logo_small.png" rel="shortcut icon" type="image/png" />
-        <link href="/css/bootstrap.min.css" rel="stylesheet">
-        <link href="/css/index.css" rel="stylesheet">
-    </head>
-    <body onload="initjsPlumb();main();" onKeyDown="hotKey(event)" data-demo-id="statemachine" data-library="dom">
-
-<!-- Navbar -->
-
-        <nav class="navbar navbar-default navbar-fixed-top">
-            <div class="container-fluid">
-                <a class="navbar-brand" href="#">
-        			<table><tr><td><img alt="Brand" src="/img/logo_small.png"></td><td>&nbsp;&nbsp;<b>КРАН<sup>&nbsp;&alpha;</sup></b></td></tr></table>
-      			</a>
-      <ul class="nav navbar-nav">
-	      <li class="active" id="btnEasyMode">
-          <a id="emodeid" href="#" class="dropdown-toggle sliding-u-l-r sliding-u-l-r-active" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('esmode')">Обработка</a>
-        </li>
-        <li id="btnScreen">
-          <a id="btnscreenid" href="#" class="dropdown-toggle sliding-u-l-r" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('screen')">Визуализатор</a>
-        </li>
-        <li id="btncontroll">
-          <a id="btnsetid" href="#" class="dropdown-toggle sliding-u-l-r" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('controll')">Контроль состояний ШАЛ</a>
-        </li>
-        <li id="btnEasyMode">
-          <a id="emodeid" href="#" class="dropdown-toggle sliding-u-l-r" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('esmode')">Настройки</a>
-        </li>
-        <li id="btnLog">
-          <a id="btnlogid" href="#" class="dropdown-toggle sliding-u-l-r" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('log')">База данных</a>
-        </li>
-        <li id="btnConstructor">
-          <a id="btnconstrid" href="#" class="dropdown-toggle sliding-u-l-r" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('constructor')">Схема обработки (DEPRICATED!!)</a>
-        </li>
-      </ul>
-                <div class="btn-group pull-right" role="group" aria-label="...">
-                    <button onclick="$('#connectedDevices').modal('show')" type="button" class="btn navbar-btn btn-success" id="schemesStatus">Схемы</button>
-                </div>
+  <head>
+      <title>НЕВОД</title>
+      <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
+      <link href="/index.css" rel="stylesheet">
+      <link href="/libs/bootstrap/bootstrap.min.css" rel="stylesheet">
+      <link href="/libs/jquery/jquery-ui-1.10.0.custom.css" rel="stylesheet">
+  </head>
+  <body onload="main()">
+    <nav class="navbar navbar-default navbar-fixed-top navbar-custom">
+      <a class="navbar-brand"><table><tr><td><img class="logo" alt="nevod" src="/libs/images/nevodlogo.png">&nbsp;&nbsp;<b class="project-name">NEVOD</b>&nbsp;&nbsp;</td></tr></table></a>
+      <div class="navbar-right">Права доступа: <span>Гость</span><button class="auth-button" data-toggle="modal" data-target="#id_auth-modal">Войти</button></div>
+    </nav>
+    <div class="main-container">
+      <div class="header-container">
+        <div class="header-info">
+          <img class='nevod-logo' alt="nevod" src='/libs/images/nevodlogo.png'>
+          <p>Установки Эксперементального комплекса НЕВОД</p>
+          <p style="font-weight:100; font-size:20px;">НИЯУ МИФИ, Москва</p>
+        </div>
+      </div>
+        <div class="content-container">
+          <div class="panel panel-default panel-custom" style="margin-left: -550px; ">
+            <div class="panel-body">
+              <div style="margin-top:50px;text-align:center;font-size:30px;">УРАН</div>
+              <img class='set-button' alt='uran' src="/libs/images/uranbutton.png"></img>
+              <div style=" margin-top:40px;text-align:left;font-size:15px;">Установка УРАН предназначена для регистрации тепловых нейтронов в атмосфере и изучения нейтронной компоненты широких атмосферных ливней (ШАЛ).</div>
             </div>
-        </nav>
-
-<div class="processing-container">
-  <div class="eas-controll-container"></div>
-  <div class="neutron-controll-container"></div>
-</div>
-
-<div class="demo statemachine-demo" id="statemachine-demo" ></div>
-
-<nav class="navbar navbar-inverse navbar-default navbar-fixed-bottom" id="constructor-navbar" display=none>
-
-  <div class="container">
-    <div class="btn-group dropup">
-  <button type="button" class="btn btn-default" onclick="newBlock('SRC')"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span>&nbsp;&nbsp;Новый блок</button>
-  <button type="button" onclick="getBlocks()" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-    <span class="caret"></span>
-    <span class="sr-only">Toggle Dropdown</span>
-  </button>
-  <ul class="dropdown-menu scrollable-menu" id="blocks-menu">
-    <li role="separator" class="divider"></li>
-    <li><a href="#" onclick="newBlock('file')">Из файла</a></li>
-  </ul>
-</div>
-
-    <button class="btn btn-default navbar-btn" onclick="newBlock('SRC')"><span class="glyphicon glyphicon-save" aria-hidden="true"></span>&nbsp;&nbsp;Сохранить схему</button>
-    <button class="btn btn-default navbar-btn" onclick="newBlock('SRC')"><span class="glyphicon glyphicon-open" aria-hidden="true"></span>&nbsp;&nbsp;Загрузить схему</button>
-    <button class="btn btn-default navbar-btn" onclick="newBlock('SRC')"><span class="glyphicon glyphicon-console" aria-hidden="true"></span>&nbsp;&nbsp;Установленные схемы</button>
-
-  </div>
-</nav>
-
-<!-- Modal -->
-<div class="modal fade" id="connectionSettings" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title" id="myModalLabel">Настройка связи</h4>
-      </div>
-      <div class="modal-body">
-        <table>
-        <tr>
-        <td>
-            <div class="btn-group" data-toggle="buttons" id="inputsFrom">
-                <label class="btn btn-primary active">
-                <input type="radio" name="options" id="option1" checked>X</label>
+          </div>
+          <div class="content-container-devider"></div>
+          <div class="panel panel-default panel-custom" style="margin-left: 50px;">
+            <div class="panel-body">
+              <div style="margin-top:50px;text-align:center;font-size:30px;">НЕВОД ШАЛ</div>
+              <img class='set-button' alt='uran' src="/libs/images/easbutton.png"></img>
+              <div style=" margin-top:40px;text-align:left;font-size:15px;">Установка НЕВОД ШАЛ предназначена для регистрации электронной и мюонной компоненты широких атмосферных ливней (ШАЛ).</div>
             </div>
-        </td>
-        <td>
-            <div class="btn-group" data-toggle="buttons" id="inputsTo">
-                <label class="btn btn-primary active">
-                <input type="radio" name="options" id="option2" checked>X</label>
-            </div>
-        </td>
-        </tr>
-        </table>
+          </div>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-danger pull-left" data-dismiss="modal" onclick="deleteConnection()">Удалить связь</button>
-        <button type="button" class="btn btn-default" data-dismiss="modal">Закрыть</button>
-        <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="setConnection()">Подтвердить</button>
+      <div class="more-info-container">УЗНАТЬ БОЛЬШЕ О КОМПЛЕКСЕ НЕВОД<button class="more-info-button" onclick="location.href='http://www.nevod.mephi.ru/ru/'">УЗНАТЬ БОЛЬШЕ</button></div>
+      <div class="dev-info-container"><div class="dev-info-line">© 2016 NEVOD ® MEPHI Rights Reserved.</div></div>
+    </div>
+
+    <div class="modal fade modal-custom" id="id_auth-modal" tabindex="-1">
+      <div class="modal-content modal-content-custom">
+        <div class="modal-header modal-header-custom">
+          <img data-dismiss="modal" class='close-custom' alt="close" src="/libs/images/close.png" onclick="closeAuthModal()"></img>
+          <div style="margin-top:20px; font-size:18px;">Войти</div>
+        </div>
+        <div class="modal-body modal-body-custom" style="height:9em !important; display:none;" id="id_auth-loader">
+          <div class="loader">Loading...</div>
+        </div>
+        <div class="modal-body modal-body-custom" id="id_auth">
+          Введите имя и пароль для получения необходимых прав доступа.
+          <div class="input-group input-group-custom" style="margin-top:30px;">
+            <span class="input-group-addon" id="basic-addon1"><img class='auth-icon' alt='USR' src='/libs/images/user_male2-128.png'></span>
+            <input type="text" class="form-control form-control-custom" id="id_username_input" placeholder="Username" aria-describedby="basic-addon1">
+          </div>
+          <div class="input-group input-group-custom" style="margin-top:20px;">
+            <span class="input-group-addon" id="basic-addon1"><img class='auth-icon' alt='USR' src='/libs/images/password-128.png'></span>
+            <input type="password" class="form-control form-control-custom" id="id_password_input" placeholder="Password" aria-describedby="basic-addon1">
+          </div>
+          <div class="auth-warn" id="id_auth-warn-empty">Пустые поля недопустимы</div>
+          <div class="auth-warn" id="id_auth-warn-warn">Неверная пара username/password</div>
+        </div>
+        <div class="modal-footer modal-footer-custom" id='id_auth-modal-footer' onclick="authenticate()">
+          <img id="id_go-auth" src='/libs/images/go-auth.png'>
+        </div>
       </div>
     </div>
-  </div>
-</div>
+    <!-- скрипты -->
+    <script src="/libs/jquery/jquery-2.1.4.min.js"></script>
+    <script src="/libs/bootstrap/bootstrap.min.js"></script>
+    <script src="/libs/jquery/jquery-ui-1.10.0.custom.min.js"></script>
+    <script>document.write('<script src="https://'+ location.hostname + ':'+location.port+'/socket.io/socket.io.js">\x3C/script>')</script>
+    <script src="/index.js"></script>
 
-<!-- Modal -->
-<div class="modal fade" id="connectedDevices" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title" id="myModalLabel1">Расчеты идут по схемам:</h4>
-      </div>
-      <div class="modal-body">
-        <table id="deviceTable" class="table table-striped">
-        <thead><tr><td>Название</td><td></td><td>Состояние</td><td>Действие</td><td>Удалить</td></tr></thead>
-        <tbody id="clients">
-        </tbody>
-        </table>
-      </div>
-      <div class="modal-footer">
-        <input type="text" class="form-control" id="schemeName" placeholder="имя_схемы" onKeyDown="checkSchemeName(this.value)", onKeyUp="checkSchemeName(this.value)">
-        <button type="button" id="schemeInstallButton" class="btn btn-success" onclick="installScheme(0)">Установить схему</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Modal settings  controll state-->
-
- <div class="modal fade" id="controllstatesetting" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title" id="myModalLabel1">Настройка контроля состояний:</h4>
-      </div>
-      <div class="modal-body">
-        <table>
-	        <thead style="font-size: 15px;"><tr><td>Отображать кластеры</td><td></td><td>Общие настройки</td></tr></thead>
-	        <tbody>
-		        <tr>
-			        <td><div class="checkbox settings-top"><input type="checkbox" class="custom-checkbox" id="1claster" checked><label for="1claster"> 1-й кластер</label></div></td>
-		        </tr>
-		        <tr>
-			        <td><div class="checkbox"><input type="checkbox" class="custom-checkbox" id="2claster"><label for="2claster"> 2-й кластер</label></div></td>
-		        </tr>
-		        <tr>
-			        <td><div class="checkbox"><input type="checkbox" class="custom-checkbox" id="3claster"><label for="3claster"> 3-й кластер</label></div></td>
-		        </tr>
-		        <tr>
-			        <td><div class="checkbox"><input type="checkbox" class="custom-checkbox" id="4claster"><label for="4claster"> 4-й кластер</label></div></td>
-		        </tr>
-		        <tr>
-			        <td><div class="checkbox"><input type="checkbox" class="custom-checkbox" id="5claster"><label for="5claster"> 5-й кластер</label></div></td>
-		        </tr>
-		        <tr>
-			        <td><div class="checkbox"><input type="checkbox" class="custom-checkbox" id="6claster"><label for="6claster"> 6-й кластер</label></div></td>
-		        </tr>
-	        </tbody>
-        </table>
-      </div>
-      <div class="modal-footer">
-	      <button type="button" id="schemeInstallButton" class="btn btn-success" onclick="" data-dismiss="modal" aria-label="Close">Готово</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-
-<div id="oscill-container">
-<div id="oscilloscope">
-</div>
-
-<nav class="navbar navbar-inverse navbar-default navbar-fixed-bottom">
-  <div class="container">
-    <div class="btn-group" data-toggle="buttons">
-        <label class="btn btn-default active" onclick="oscPlay = true;">
-            <input type="radio" name="options" id="option3" checked>
-            <span class="glyphicon glyphicon-play" aria-hidden="true"></span>
-        </label>
-        <label class="btn btn-default" onclick="oscPlay = false;">
-            <input type="radio" name="options" id="option4">
-            <span class="glyphicon glyphicon-stop" aria-hidden="true"></span>
-        </label>
-    </div>
-    <button type="button" class="btn btn-default" data-toggle="button" aria-pressed="false" onclick="switchOscRec()">
-        <span class="glyphicon glyphicon-record" aria-hidden="true"></span>
-    </button>
-    <button class="btn btn-default navbar-btn" onclick="clearOsc()"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
-  </div>
-</nav>
-</div>
-
-<div id="log-container">
-    <table id="log-table" class="table table-hover">
-    <thead>
-    <tr class="">
-        <td>№</td>
-        <td>Код/префикс</td>
-        <td>Время</td>
-    </tr>
-    </thead>
-    <tbody id="eventLog">
-    </tbody>
-    </table>
-<nav class="navbar navbar-inverse navbar-default navbar-fixed-bottom">
-  <div class="container">
-        <button type="button" class="btn btn-default" data-toggle="button" aria-pressed="false" onclick="switchLogPlay()">
-            <span class="glyphicon glyphicon-pause" aria-hidden="true"></span>
-        </button>
-        <button class="btn btn-default navbar-btn" onclick="clearLog()"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
-  </div>
-</nav>
-</div>
-
-<div id="controll-container">
-<svg class="svg-view" id="svg"></svg>
-<nav class="navbar navbar-inverse navbar-default navbar-fixed-bottom">
-  <div class="container">
-    <button type="button" class="btn btn-default navbar-btn" onclick="setControllState([]);"><span aria-hidden="true">Пуск</span></button>
-    <button type="button" class="btn btn-default navbar-btn" onclick="$('#controllstatesetting').modal('show')"><span aria-hidden="true">Настройка</span></button>
-  </div>
-</nav>
-</div>
-
-<!-- Include scripts -->
-
-        <!-- support lib for bezier stuff -->
-        <script src="/js/jsplumb/jsBezier-0.7.js"></script>
-        <!-- event adapter -->
-        <script src="/js/jsplumb/mottle-0.6.js"></script>
-        <!-- geometry functions -->
-        <script src="/js/jsplumb/biltong-0.2.js"></script>
-        <!-- drag -->
-        <script src="/js/jsplumb/katavorio-0.6.js"></script>
-        <!-- jsplumb util -->
-        <script src="/js/jsplumb/util.js"></script>
-        <script src="/js/jsplumb/browser-util.js"></script>
-        <!-- main jsplumb engine -->
-        <script src="/js/jsplumb/jsPlumb.js"></script>
-        <!-- base DOM adapter -->
-        <script src="/js/jsplumb/dom-adapter.js"></script>
-        <script src="/js/jsplumb/overlay-component.js"></script>
-        <!-- endpoint -->
-        <script src="/js/jsplumb/endpoint.js"></script>
-        <!-- connection -->
-        <script src="/js/jsplumb/connection.js"></script>
-        <!-- anchors -->
-        <script src="/js/jsplumb/anchors.js"></script>
-        <!-- connectors, endpoint and overlays  -->
-        <script src="/js/jsplumb/defaults.js"></script>
-        <!-- bezier connectors -->
-        <script src="/js/jsplumb/connectors-bezier.js"></script>
-        <!-- state machine connectors -->
-        <script src="/js/jsplumb/connectors-statemachine.js"></script>
-        <!-- flowchart connectors -->
-        <script src="/js/jsplumb/connectors-flowchart.js"></script>
-        <!-- SVG renderer -->
-        <script src="/js/jsplumb/renderers-svg.js"></script>
-
-        <!-- vml renderer -->
-        <script src="/js/jsplumb/renderers-vml.js"></script>
-
-        <!-- common adapter -->
-        <script src="/js/jsplumb/base-library-adapter.js"></script>
-        <!-- no library jsPlumb adapter -->
-        <script src="/js/jsplumb/dom.jsPlumb.js"></script>
-        <!--  demo code -->
-        <script src="/js/app/client.js"></script>
-        <script src="/js/jquery-2.1.4.min.js"></script>
-        <script src="/js/flot/jquery.flot.js"></script>
-        <script src="/js/flot/jquery.flot.axislabels.js"></script>
-        <script src="/js/bootstrap/bootstrap.min.js"></script>
-        <script src=""></script><script src="/js/ace-builds/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
-        <script src="/js/snap.svg-min.js"></script>
-      <!-- sockets.io -->
-        <script>document.write('<script src="//'+ location.hostname + ':'+location.port+'/socket.io/socket.io.js">\x3C/script>')</script>
-        <script type="text/javascript">
-        	var bodyScroll;
-        	var stdX, stdY, scrX, scrY;
-
-            $( document ).ready(function() {
-                initOsc();
-                updateControllState();
-            });
-
-            $(document).mousedown(function(e) {
-            	if(e.button==0) {
-            	bodyScroll = true;
-            	stdX = e.clientX;
-            	stdY = e.clientY;
-            	$("html, body").scrollTop(function(i, v) {
-        				scrY = v;
-    			});
-            	$("html, body").scrollLeft(function(i, v) {
-        				scrX = v;
-    			});
-            	$("html, body").css({"cursor":"move"});
-            	}
-            });
-
-            $(document).mouseup(function(e) {
-            	bodyScroll = false;
-            	$("html, body").css({"cursor":"default"});
-            });
-
-            $(document).mousemove(function(e) {
-            	if(bodyScroll==true) {
-    				$("html, body").scrollTop(function(i, v) {
-        				var y = e.clientY - stdY;
-        				return scrY - y;
-    				});
-    				$("html, body").scrollLeft(function(i, v) {
-        				var x = e.clientX - stdX;
-        				return scrX - x;
-    				});
-    			}
-			});
-
-
-        </script>
-    </body>
+  </body>
 </html>
