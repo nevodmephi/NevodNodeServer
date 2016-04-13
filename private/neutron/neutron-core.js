@@ -20,22 +20,23 @@ module.exports = {
   },
   // функция для обработки распарсенных пакетов с платы 100Mhz -> массив осцилограмм сигналов с данными
   packs_process_100mhz:function(packages,threshold,sma_power,isUsingSMA){
-    threshold = threshold == undefined ? 2048+15:threshold+2048
-    sma_power = sma_power == undefined ? 32:sma_power
+    threshold = threshold == undefined ? 15:threshold
+    sma_power = sma_power == undefined ? 16:sma_power
     isUsingSMA = isUsingSMA == undefined ? true:isUsingSMA
     var signals = []
     try {
       for (var i in packages){
   			var pack = packages[i];
+        var z_sigs=[]
   			for (var j in pack.signal){
   				var sig = pack.signal[j]
   				var max = this.u_math.max_of_array(sig);
-  				if(max>threshold){
+          var zsig = sig.slice(50,300);
+          var zline = this.u_math.avarage(zsig);
+  				if(max>threshold+zline){
             sig = isUsingSMA ? this.u_math.simple_moving_avarage(pack.signal[j],sma_power) : pack.signal[j]
             max = this.u_math.max_of_array(sig);
             var mean = this.u_math.avarage(sig)
-  					var zsig = sig.slice(50,300);
-  					var zline = this.u_math.avarage(zsig);
   					signals.push({channel:j,signal:sig,time:pack.time,max:max,avg:mean,zero_line:zline});
   				}
   			}
@@ -67,6 +68,7 @@ module.exports = {
     try {
       for(var i in data){
     		var event = {
+          zero_lines:data[i].zero_lines,
     			channel:data[i].channel,
           chiptype:chip,
     			time:data[i].time,
