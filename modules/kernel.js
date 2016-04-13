@@ -34,7 +34,7 @@ module.exports.load = function(){
 var run = function(){
   if(_task=="neutron"){
     module.exports.runBGProcess({proc:"node",options:{tasks:['watch'],chiptype:183}})
-     module.exports.runBGProcess({proc:"node",options:{tasks:['watch'],chiptype:181}})
+    module.exports.runBGProcess({proc:"node",options:{tasks:['watch'],chiptype:181}})
   }
 }
 
@@ -149,7 +149,7 @@ module.exports.runBGProcess = function(config){
 //           //         // var date1 = new Date(crs[j]['time'])
 //           //         // var date2 = new Date(data[i].timestamp)
 //           //         // console.log(crs[j]['time'].getTime()==data[i].timestamp.getTime())
-                  
+
 //           //         if(crs[j]['time'].getTime()==data[i].timestamp.getTime()){
 //           //           // console.log('found')
 //           //           crs[j]['data'].push(data[i])
@@ -162,7 +162,7 @@ module.exports.runBGProcess = function(config){
 //           //       crs.push({"time":data[i].timestamp,data:[data[i]]})
 //           //      }
 //           //     }
-            
+
 //           // }
 //           // console.log(crs.length)
 //           // for(var i in crs){

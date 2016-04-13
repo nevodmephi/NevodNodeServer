@@ -4,50 +4,53 @@ const neutron_core = require('./neutron-core.js')
 const fs = require('fs')
 
 var options = JSON.parse(process.env.options__)
-var _tasks = options['tasks'], _filename =  options['file'], _filetype = '100Mhz',
-    _settings = JSON.parse(process.env.settings), isSaveSigs = options['savesigs'],
-    chiptype = options['chiptype'], collection = 'chip100_'+chiptype
+var tasks = options['tasks'], _filename =  options['file'], filetype = '100Mhz',
+    settings = JSON.parse(process.env.settings), isSaveSigs = options['savesigs'],
+    chiptype = options['chiptype'], collection = 'chip100_'+chiptype+"events",
+    collectionStat = 'chip100_'+chiptype+"stat"
+
+db.getCollections({startsWith:collectionStat},function(cols){
+  if(cols.length == 0){
+    db.writeDocsToDb(collectionStat,[{"type":"cr","crs":[]}],function(){})
+  }
+})
 
 if(isSaveSigs){
   collection="waveforms_"+_filename.slice(0,_filename.length-4)
 }
 
-if(_settings['bin-folder'][0]=='.'){
-  _settings['bin-folder'] = '.'+_settings['bin-folder']
+if(settings['bin-folder'][0]=='.'){
+  settings['bin-folder'] = '.'+settings['bin-folder']
 }
-if(_settings['save-folder'][0]=='.'){
-  _settings['save-folder'] = '.'+_settings['save-folder']
+if(settings['save-folder'][0]=='.'){
+  settings['save-folder'] = '.'+settings['save-folder']
 }
-if(_settings['watching-folder'][0]=='.'){
-  _settings['watching-folder'] = '.'+_settings['watching-folder']
+if(settings['watching-folder'][0]=='.'){
+  settings['watching-folder'] = '.'+settings['watching-folder']
 }
 
-neutron_core.init(_settings['save-folder'],_filename,isSaveSigs)
+neutron_core.init(settings['save-folder'],_filename,isSaveSigs)
 
 var workout = {
   run:function(){
     var donePercent = 0;
-    if(_tasks.indexOf("showPercent")!=-1){
+    if(tasks.indexOf("showPercent")!=-1){
       setInterval(function(){
         process.stdout.write('{"type":"percent","value":"'+donePercent+'"};')
       },1000)
     }
-    if(_tasks.indexOf("parse")!=-1){
+    if(tasks.indexOf("parse")!=-1){
       collection+="_parser"
-      parser.parseFileByPart(_settings['bin-folder']+_filename,_filetype,function(data,info){
+      parser.parseFileByPart(settings['bin-folder']+_filename,filetype,function(data,info){
         if(data==null || data==undefined || data.length==0){
           process.exit()
         }
         donePercent = info.status
-        var signals = neutron_core.packs_process_100mhz(data,20,32,false)
+        var signals = neutron_core.packs_process_100mhz(data,20,16,true)
         if(signals.length!=0){
           var events = neutron_core.neutron_event(signals,0.1,0.6,chiptype,info.filestat.birthtime)
           signals = null
           var timestamp = info.filestat.birthtime
-<<<<<<< HEAD
-=======
-          
->>>>>>> 0037f6e808d3e39400bf4884b63d3d96fcc76259
           db.writeDocsToDb(collection,events,function(){
             if(info.finished){
               process.stdout.write('{"type":"finished"};')
@@ -63,8 +66,8 @@ var workout = {
           // onFinished(collection,chiptype,info.filestat.birthtime)
         }
       })
-    } else if(_tasks.indexOf('watch')!=-1){
-      var onFinished = function(collection,chiptype,timestamp){
+    } else if(tasks.indexOf('watch')!=-1){
+      var onFinished = function(timestamp){
         console.log("parsed")
         db.findDocsInDb(collection,{"chiptype":chiptype,"timestamp":timestamp},{},{},function(data){
           // console.log(data.length)
@@ -83,55 +86,53 @@ var workout = {
       }
       var newFileName = "?";
       var oldFileName = "??";
-      var watcher = fs.watch(_settings['watching-folder'])
+      var watcher = fs.watch(settings['watching-folder'])
       watcher.on('change',function(event,filename){
-        var path = _settings['watching-folder']
+        var path = settings['watching-folder']
         if(event=="rename"){
           fs.readdir(path,function(err,files){
             if(files.indexOf(filename)==-1){
               return;
             }
             if(filename.slice(0,3)!=chiptype.toString()){
-              // console.log(chiptype+" "+filename.slice(0,3))
-              return
+              return;
             }
             oldFileName = newFileName;
             newFileName = filename;
             if(oldFileName != "?" && oldFileName!=newFileName){
-              // console.log(chiptype+" "+oldFileName.slice(0,3))
               console.log(chiptype+" parsing "+oldFileName)
               var fileToParse = oldFileName
-              parser.parseFileByPart(path+fileToParse,_filetype,function(data,info){
+              parser.parseFileByPart(path+fileToParse,filetype,function(data,info){
                 var signals = neutron_core.packs_process_100mhz(data,20,16,true)
                 if(signals.length!=0){
                   var events = neutron_core.neutron_event(signals,0.1,0.6,chiptype,info.filestat.birthtime)
                   signals = null
                   var timestamp = info.filestat.birthtime
+                  var rates = neutron_core.createCountRate(events)
+                  db.updateCollection(collectionStat,{"type":"countrates","crs":{$elemMatch:{"birthtime":timestamp}}},{$inc:{'cr.0':rates[0],
+                    'cr.1':rates[1],'cr.2':rates[2],'cr.3':rates[3],'cr.4':rates[4],'cr.5':rates[5],'cr.6':rates[6],'cr.7':rates[7],'cr.8':rates[8],'cr.9':rates[9],'cr.10':rates[10],
+                    'cr.11':rates[11],'cr.12':rates[12]}},true,function(){})
                   db.writeDocsToDb(collection,events,function(){
                     if(info.finished){
-                      // console.log('unlinking '+fileToParse)
-                      // console.log(info)
-                      // fs.close(path+fileToParse)
                       fs.unlink(path+fileToParse,function(err){
                         if(err){
                           console.log("error unlink")
                         }
                       })
-                      onFinished(collection,chiptype,timestamp)
+                      console.log('parsed')
+                      // onFinished(timestamp)
                     }
                   });
                   data = null;
                 } else if (info.finished){
                   signals = null
-                  // console.log('unlinking '+fileToParse)
-                  // console.log(info)
-                  // fs.close(path+fileToParse)
                   fs.unlink(path+fileToParse,function(err){
                     if(err){
                       console.log("error unlink")
                     }
                   })
-                  onFinished(collection,chiptype,info.filestat.birthtime)
+                  console.log('parsed')
+                  // onFinished(info.filestat.birthtime)
                 }
               })
             }
@@ -153,7 +154,7 @@ var writeSpToTxt = function(data){
   var createSP = function(data){
     var prevMaxs = [0,0,0,0,0,0,0,0,0,0,0,0];
   var sp = [[],[],[],[],[],[],[],[],[],[],[],[]];
-  
+
 
   var newSp = function(event,channel){
     if (event.channel == channel){
