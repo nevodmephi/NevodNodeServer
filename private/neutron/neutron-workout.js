@@ -44,7 +44,10 @@ var workout = {
           var events = neutron_core.neutron_event(signals,0.1,0.6,chiptype,info.filestat.birthtime)
           signals = null
           var timestamp = info.filestat.birthtime
+<<<<<<< HEAD
+=======
           
+>>>>>>> 0037f6e808d3e39400bf4884b63d3d96fcc76259
           db.writeDocsToDb(collection,events,function(){
             if(info.finished){
               process.stdout.write('{"type":"finished"};')
