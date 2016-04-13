@@ -33,7 +33,8 @@ module.exports.load = function(){
 
 var run = function(){
   if(_task=="neutron"){
-    module.exports.runBGProcess({proc:"node",options:{tasks:['watch'],chiptype:182}})
+    module.exports.runBGProcess({proc:"node",options:{tasks:['watch'],chiptype:183}})
+     module.exports.runBGProcess({proc:"node",options:{tasks:['watch'],chiptype:181}})
   }
 }
 

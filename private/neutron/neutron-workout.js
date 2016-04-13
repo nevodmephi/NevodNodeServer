@@ -39,7 +39,7 @@ var workout = {
           process.exit()
         }
         donePercent = info.status
-        var signals = neutron_core.packs_process_100mhz(data,20,32,true)
+        var signals = neutron_core.packs_process_100mhz(data,20,32,false)
         if(signals.length!=0){
           var events = neutron_core.neutron_event(signals,0.1,0.6,chiptype,info.filestat.birthtime)
           signals = null
@@ -66,12 +66,16 @@ var workout = {
         db.findDocsInDb(collection,{"chiptype":chiptype,"timestamp":timestamp},{},{},function(data){
           // console.log(data.length)
           writeCrToTxt(data)
+          // console.log("cr wrote")
+          data=null;
+          // writeZeroLines(data)
         });
         var date = new Date(timestamp.getFullYear(),timestamp.getMonth(),timestamp.getDate())
         db.findDocsInDb(collection,{"chiptype":chiptype,"timestamp":{"$gte":date}},{},{},function(data){
-          // console.log(data.length)
-          writeZeroLines(data)
+          console.log(data.length)
           writeSpToTxt(data)
+           console.log("sp wrote")
+            data=null;
         })
       }
       var newFileName = "?";
@@ -84,13 +88,18 @@ var workout = {
             if(files.indexOf(filename)==-1){
               return;
             }
+            if(filename.slice(0,3)!=chiptype.toString()){
+              // console.log(chiptype+" "+filename.slice(0,3))
+              return
+            }
             oldFileName = newFileName;
             newFileName = filename;
             if(oldFileName != "?" && oldFileName!=newFileName){
-              console.log("parsing "+oldFileName)
+              // console.log(chiptype+" "+oldFileName.slice(0,3))
+              console.log(chiptype+" parsing "+oldFileName)
               var fileToParse = oldFileName
               parser.parseFileByPart(path+fileToParse,_filetype,function(data,info){
-                var signals = neutron_core.packs_process_100mhz(data,20,32,true)
+                var signals = neutron_core.packs_process_100mhz(data,20,16,true)
                 if(signals.length!=0){
                   var events = neutron_core.neutron_event(signals,0.1,0.6,chiptype,info.filestat.birthtime)
                   signals = null
@@ -138,7 +147,7 @@ workout.run()
 var writeSpToTxt = function(data){
   var filename = "../resources/txt/"+data[0].chiptype+"/sp/"+"SP__"+data[0].timestamp.getDate()+(data[0].timestamp.getMonth()+1)+
     data[0].timestamp.getFullYear()+".dat";
-  var createSP = function(){
+  var createSP = function(data){
     var prevMaxs = [0,0,0,0,0,0,0,0,0,0,0,0];
   var sp = [[],[],[],[],[],[],[],[],[],[],[],[]];
   
@@ -186,7 +195,8 @@ var writeSpToTxt = function(data){
       els.push(data[i])
     }
   }
-
+  // console.log(els.length)
+  // console.log(ns.length)
   var sp = createSP(ns)
   var sp_el = createSP(els)
 
@@ -250,22 +260,35 @@ var writeCrToTxt = function(data){
 var writeZeroLines = function(data){
   var filename = "../resources/txt/"+data[0].chiptype+"/"+"ZL__"+data[0].timestamp.getDate()+(data[0].timestamp.getMonth()+1)+
     data[0].timestamp.getFullYear()+".dat";
-  fs.stat(filename,function(err){
-    var str = ""
-    if(err){
-      str ="Time\tZ1\tZ2\tZ3\tZ4\tZ5\tZ6\tZ7\tZ8\tZ9\tZ10\tZ11\tZ12\n"
-    }
-    var z_lines = [[],[],[],[],[],[],[],[],[],[],[],[]]
-    for(var i in data){
-      z_lines[data[i].channel].push(data[i].zero_line)
-    }
-    for(var i=0; i<data[0].length;i++){
-      str+=data[i].timestamp
-      for(var j = 0;j<12;j++){
-        str += z_lines[j][i] + "\t"
-      }
-      str += "\n"
-    }
-    fs.appendFile(filename,str)
-  })
+    // console.log(data.length)
+  neutron_core.txt.saveZeroLines(filename,data,true)
+  // fs.stat(filename,function(err){
+  //   var str = ""
+  //   if(err){
+  //     str ="Z1\tZ2\tZ3\tZ4\tZ5\tZ6\tZ7\tZ8\tZ9\tZ10\tZ11\tZ12\n"
+  //   }
+  //   var z_lines = [[],[],[],[],[],[],[],[],[],[],[],[]]
+  //   // console.log(data.length)
+  //   for(var i in data){
+  //     z_lines[data[i].channel].push(data[i].zero_line)
+  //   }
+  //   // console.log(data[0].zero_line)
+  //   // console.log(z_lines[0].length)
+  //   var maxlength = 0;
+  //   for(var i=0;i<12;i++){
+  //     maxlength = maxlength<z_lines[i].length ? z_lines[i].length : maxlength
+  //   }
+  //   for(var i=0; i<maxlength;i++){
+  //     // str+=data[i].timestamp
+  //     for(var j = 0;j<12;j++){
+  //       if(z_lines[j][i]!=undefined){
+  //         str += z_lines[j][i] + "\t"
+  //       } else {
+  //         str += 0 + "\t"
+  //       }
+  //     }
+  //     str += "\n"
+  //   }
+  //   fs.appendFile(filename,str)
+  // })
 }

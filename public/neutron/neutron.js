@@ -164,7 +164,7 @@ function showSavedOscs(){
 }
 
 function getOscsFromDB(file){
-  socket.emit('db-get',{res:"data-view",collection:file,query:{},sorting:{},projection:{signal:1,_id:0}})
+  socket.emit('db-get',{res:"data-view",collection:file,query:{"neutron":true,"neutronDW":true,'channel':"10"},sorting:{},projection:{signal:1,_id:0}})
 }
 
 function initOsc() {
