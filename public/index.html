@@ -47,9 +47,6 @@
           <img data-dismiss="modal" class='close-custom' alt="close" src="/libs/images/close.png" onclick="closeAuthModal()"></img>
           <div style="margin-top:20px; font-size:18px;">Войти</div>
         </div>
-        <div class="modal-body modal-body-custom" style="height:9em !important; display:none;" id="id_auth-loader">
-          <div class="loader">Loading...</div>
-        </div>
         <div class="modal-body modal-body-custom" id="id_auth">
           Введите имя и пароль для получения необходимых прав доступа.
           <div class="input-group input-group-custom" style="margin-top:30px;">
@@ -62,6 +59,7 @@
           </div>
           <div class="auth-warn" id="id_auth-warn-empty">Пустые поля недопустимы</div>
           <div class="auth-warn" id="id_auth-warn-warn">Неверная пара username/password</div>
+          <div class="loader" style="display:none; margin-top:15px;margin-bottom:-25px;" id="id_auth-loader">Loading...</div>
         </div>
         <div class="modal-footer modal-footer-custom" id='id_auth-modal-footer' onclick="authenticate()">
           <img id="id_go-auth" src='/libs/images/go-auth.png'>
