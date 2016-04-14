@@ -5,7 +5,6 @@ const https = require("https");
 const net = require("net");
 const bodyParser  = require('body-parser');
 const jwt = require('jsonwebtoken');
-const kernel = require("./modules/kernel.js");
 var io = require("socket.io");
 
 const security_settings = JSON.parse(fs.readFileSync('./security/users.json'))
@@ -18,14 +17,7 @@ var https_options = {
     cert: cert
 };
 
-
-const task = (process.env.TASK || "all")
-if(task != "eas" && task != "neutron" && task != "all"){
-  console.log(task+" - is unkown task environment variable, use ONLY: 'eas' or 'neutron' or 'all' for TASK ")
-  process.exit()
-}
-
-kernel.init(task)
+// kernel.init(task)
 // kernel.load()
 
 //http server

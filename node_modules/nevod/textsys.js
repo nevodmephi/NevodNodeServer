@@ -113,19 +113,22 @@ module.exports = {
     }
   },
   saveZeroLines:function(filename,data,sync){
+    // console.log(data.length)
+    var str = ""
     for(var i in data){
-      var str = data[i].number+"\t"+data[i].time+"\t"
+      str += data[i].number+"\t"+data[i].time+"\t"
+      // console.log(data[i].zero_lines)
       for(var j in data[i].zero_lines){
         str+=data[i].zero_lines[j]+"\t"
       }
       str+="\n"
-      if(sync){
-        var result = this.appendFileSync(filename,str)
-        str = null
-        return result
-      } else {
-        this.appendFile(filename,str)
-      }
+    }
+    if(sync){
+      var result = this.appendFileSync(filename,str)
+      str = null
+      return result
+    } else {
+      this.appendFile(filename,str)
     }
   }
 }
