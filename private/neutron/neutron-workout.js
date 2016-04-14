@@ -1,19 +1,29 @@
-const parser = require('../parser.js') //parser
-const db = require('../../modules/db.js') //working with db
+const nevod = require('nevod')
+const parser = nevod.getUranParser()
 const neutron_core = require('./neutron-core.js')
 const fs = require('fs')
+
+var mongo = null
+nevod.initMongoClient(true,function(client){
+  mongo = client
+  // mongo.getDBCollections({startsWith:collectionStat},function(cols){
+  //   if(cols.length == 0){
+  //     mongo.writeDocsToDb(collectionStat,[{"type":"countrates","crs":[{"birthtime":"","cr":[0,0,0,0,0,0,0,0,0,0,0,0]}]}],function(){})
+  //   }
+  // })
+  // mongo.findDocsInDb(collection,{"chiptype":chiptype},{},{"maximum":1,"_id":0},function(data){
+  //   console.log(data)
+  //   // writeSpToTxt(data)
+  //     data=null;
+  // })
+  workout.run()
+})
 
 var options = JSON.parse(process.env.options__)
 var tasks = options['tasks'], _filename =  options['file'], filetype = '100Mhz',
     settings = JSON.parse(process.env.settings), isSaveSigs = options['savesigs'],
     chiptype = options['chiptype'], collection = 'chip100_'+chiptype+"events",
     collectionStat = 'chip100_'+chiptype+"stat"
-
-db.getCollections({startsWith:collectionStat},function(cols){
-  if(cols.length == 0){
-    db.writeDocsToDb(collectionStat,[{"type":"cr","crs":[]}],function(){})
-  }
-})
 
 if(isSaveSigs){
   collection="waveforms_"+_filename.slice(0,_filename.length-4)
@@ -51,7 +61,7 @@ var workout = {
           var events = neutron_core.neutron_event(signals,0.1,0.6,chiptype,info.filestat.birthtime)
           signals = null
           var timestamp = info.filestat.birthtime
-          db.writeDocsToDb(collection,events,function(){
+          mongo.writeDocsToDb(collection,events,function(){
             if(info.finished){
               process.stdout.write('{"type":"finished"};')
               // onFinished(collection,chiptype,timestamp)
@@ -69,19 +79,18 @@ var workout = {
     } else if(tasks.indexOf('watch')!=-1){
       var onFinished = function(timestamp){
         console.log("parsed")
-        db.findDocsInDb(collection,{"chiptype":chiptype,"timestamp":timestamp},{},{},function(data){
+        mongo.findDocsInDb(collection,{"chiptype":chiptype,"timestamp":timestamp},{},{},function(data){
           // console.log(data.length)
           writeCrToTxt(data)
           // console.log("cr wrote")
-          data=null;
+          // data=null;
           // writeZeroLines(data)
         });
         var date = new Date(timestamp.getFullYear(),timestamp.getMonth(),timestamp.getDate())
-        db.findDocsInDb(collection,{"chiptype":chiptype,"timestamp":{"$gte":date}},{},{},function(data){
-          console.log(data.length)
+        mongo.findDocsInDb(collection,{"chiptype":chiptype,"timestamp":{"$gte":date}},{},{"maximum":1,"_id":0,"timestamp":1,"channel":1,"neutron":1,"neutronDW":1},function(data){
+          // console.log(data)
           writeSpToTxt(data)
-           console.log("sp wrote")
-            data=null;
+            // data=null;
         })
       }
       var newFileName = "?";
@@ -94,33 +103,38 @@ var workout = {
             if(files.indexOf(filename)==-1){
               return;
             }
-            if(filename.slice(0,3)!=chiptype.toString()){
-              return;
-            }
+            // if(filename.slice(0,3)!=chiptype.toString()){
+            //   return;
+            // }
             oldFileName = newFileName;
             newFileName = filename;
             if(oldFileName != "?" && oldFileName!=newFileName){
               console.log(chiptype+" parsing "+oldFileName)
               var fileToParse = oldFileName
+              var countratesCreated = false
               parser.parseFileByPart(path+fileToParse,filetype,function(data,info){
                 var signals = neutron_core.packs_process_100mhz(data,20,16,true)
                 if(signals.length!=0){
                   var events = neutron_core.neutron_event(signals,0.1,0.6,chiptype,info.filestat.birthtime)
                   signals = null
                   var timestamp = info.filestat.birthtime
-                  var rates = neutron_core.createCountRate(events)
-                  db.updateCollection(collectionStat,{"type":"countrates","crs":{$elemMatch:{"birthtime":timestamp}}},{$inc:{'cr.0':rates[0],
-                    'cr.1':rates[1],'cr.2':rates[2],'cr.3':rates[3],'cr.4':rates[4],'cr.5':rates[5],'cr.6':rates[6],'cr.7':rates[7],'cr.8':rates[8],'cr.9':rates[9],'cr.10':rates[10],
-                    'cr.11':rates[11],'cr.12':rates[12]}},true,function(){})
-                  db.writeDocsToDb(collection,events,function(){
+                  // var rates = neutron_core.createCountRate(events)
+                  // console.log(rates)
+                  // mongo.findDocsInDb(collectionStat,)
+                  // mongo.updateCollection(collectionStat,{"type":"countrates","crs":{$elemMatch:{"birthtime":timestamp}}},{$inc:{'cr.0':rates[0],
+                  //   'cr.1':rates[1],'cr.2':rates[2],'cr.3':rates[3],'cr.4':rates[4],'cr.5':rates[5],'cr.6':rates[6],'cr.7':rates[7],'cr.8':rates[8],'cr.9':rates[9],'cr.10':rates[10],
+                  //   'cr.11':rates[11],'cr.12':rates[12]}},true,function(){
+                  //     console.log("updated")
+                  //   })
+                  mongo.writeDocsToDb(collection,events,function(){
                     if(info.finished){
                       fs.unlink(path+fileToParse,function(err){
                         if(err){
                           console.log("error unlink")
                         }
                       })
-                      console.log('parsed')
-                      // onFinished(timestamp)
+                      // console.log('parsed')
+                      onFinished(timestamp)
                     }
                   });
                   data = null;
@@ -131,8 +145,8 @@ var workout = {
                       console.log("error unlink")
                     }
                   })
-                  console.log('parsed')
-                  // onFinished(info.filestat.birthtime)
+                  // console.log('parsed')
+                  onFinished(info.filestat.birthtime)
                 }
               })
             }
@@ -142,14 +156,13 @@ var workout = {
     }
   },
 }
-workout.run()
 
 
 
 
 
 var writeSpToTxt = function(data){
-  var filename = "../resources/txt/"+data[0].chiptype+"/sp/"+"SP__"+data[0].timestamp.getDate()+(data[0].timestamp.getMonth()+1)+
+  var filename = "../resources/txt/"+chiptype+"/sp/"+"SP__"+data[0].timestamp.getDate()+(data[0].timestamp.getMonth()+1)+
     data[0].timestamp.getFullYear()+".dat";
   var createSP = function(data){
     var prevMaxs = [0,0,0,0,0,0,0,0,0,0,0,0];
@@ -158,7 +171,7 @@ var writeSpToTxt = function(data){
 
   var newSp = function(event,channel){
     if (event.channel == channel){
-        var max = Number((event.max).toFixed(0));
+        var max = Number((event.maximum).toFixed(0));
         max = max < 0 ? -max : max;
         var isNewMax = false
         if(max>prevMaxs[channel]){
@@ -192,6 +205,7 @@ var writeSpToTxt = function(data){
   }
   var els = []
   var ns = []
+  // console.log(data.length)
   for(var i in data){
     if(data[i].neutron && data[i].neutronDW){
       ns.push(data[i])
@@ -212,7 +226,7 @@ var writeSpToTxt = function(data){
     maxlength = maxlength<sp_el[i].length ? sp_el[i].length : maxlength
 	}
 
-
+  console.log(maxlength)
 	for (var i=0;i<maxlength;i++){
 		str+=i+"\t"
 		for (var j=0;j<12;j++){

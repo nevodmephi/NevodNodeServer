@@ -6,13 +6,15 @@
   createSpectrum;
   createCountRate;
 */
+var nevod = require('nevod')
+
 _txtsavefolder = null
 _filename = "unkown"
 isSaveSigs = false
 
 module.exports = {
-  u_math:require("../uran_math.js"),
-  txt:require("../textsys.js"),
+  u_math:nevod.getUranMathLib(),
+  txt:nevod.getTextSysLib(),
   init:function(savefolder,filename,savesigs){
     _filename = filename == undefined ? "unkown" : filename
     _txtsavefolder = savefolder == undefined ? null : savefolder
@@ -68,13 +70,13 @@ module.exports = {
     try {
       for(var i in data){
     		var event = {
-          zero_lines:data[i].zero_lines,
+          // zero_lines:data[i].zero_lines,
     			channel:data[i].channel,
           chiptype:chip,
     			time:data[i].time,
-    			max:data[i].max,
+    			maximum:data[i].max,
     			zero_line:data[i].zero_line,
-    			min:this.u_math.min_of_array(data[i].signal),
+    			minimum:this.u_math.min_of_array(data[i].signal),
     			avg:data[i].avg,
           dw:this.u_math.derivativeWidth(this.u_math.derivative(data[i].signal.slice(0,1200)),dwtreshold),
           charges: this.u_math.charge_ratio(data[i].signal,110,data[i].max)
