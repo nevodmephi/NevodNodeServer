@@ -2,7 +2,7 @@ const express = require("express");
 const nevod = require("nevod");
 var io = require("socket.io");
 
-const task = (process.env.TASK || "all")
+const task = (process.env.TASK || "neutron")
 if(task != "eas" && task != "neutron" && task != "all"){
   console.log(task+" - is unkown task environment variable, use ONLY: 'eas' or 'neutron' or 'all' for TASK ")
   process.exit()
@@ -12,7 +12,7 @@ var kernel = nevod.initServerKernel(task)
 
 //http server
 var app = express();
-const port = (process.env.PORT || 443);tt
+const port = (process.env.PORT || 80);
 app.set('port',port);
 app.use(express.static(__dirname + '/public/'));
 app.get('/', function(req,res){
