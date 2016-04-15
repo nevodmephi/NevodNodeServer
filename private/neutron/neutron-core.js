@@ -3,6 +3,8 @@
 /*list of functions:
   packs_process_100mhz;
   neutron_event;
+  createEmptySpArray;
+  addTwoSpectrums;
   createSpectrum;
   createCountRate;
 */
@@ -70,7 +72,6 @@ module.exports = {
     try {
       for(var i in data){
     		var event = {
-          // zero_lines:data[i].zero_lines,
     			channel:data[i].channel,
           chiptype:chip,
     			time:data[i].time,
@@ -98,53 +99,67 @@ module.exports = {
       return false
     }
   },
+  //создает пустой (заполненный нулями) массив спектров
+  createEmptySpArray:function(length){
+    var sp = [[],[],[],[],[],[],[],[],[],[],[],[]];
+    for(var i=0 ;i<length;i++){
+      for(var j=0;j<12;j++){
+        sp[j].push(0)
+      }
+    }
+    return sp
+  },
+  //суммирует два спектра, спектры должны быть одинаковой длины
+  addTwoSpectrums:function(sp1,sp2){
+    for (var i in sp1[0]){
+      for(var j=0 ;j<12; j++){
+        sp1[j][i]+=sp2[j][i]
+      }
+    }
+    return sp1
+  },
   //функция создает спектр апмлитуд для событий
-  createSpectrum:function(data){
+  createSpectrum:function(data,neutronsOnly,spArray,spArrayLength){
     try{
-      var prevMaxs = [0,0,0,0,0,0,0,0,0,0,0,0];
-      var sp = [[],[],[],[],[],[],[],[],[],[],[],[]];
-      var createSp = function(event,channel){
-        if (event.channel == channel){
-          var max = Number((event.max).toFixed(0));
-  		    max = max < 0 ? -max : max;
-  		    var isNewMax = false
-  		    if(max>prevMaxs[channel]){
-            isNewMax = true
-            prevMaxs[channel] = max
-  		    }
-  		    if(sp[channel].length == 0){
-            for (var j=0;j<=max;j++){
-              sp[channel].push([j,0]);
-  			    }
-  		    } else if(isNewMax){
-            for(var j=sp[channel].length;j<=max;j++){
-              sp[channel].push([j,0])
-  		      }
-  		    }
-          if(sp[channel][max]!=undefined){
-            sp[channel][max][1]++;
+      if(spArray == undefined){
+        spArrayLength = spArrayLength == undefined ? 1000 : spArrayLength
+        spArray = this.createEmptySpArray(1000)
+      }
+      for(var i in data){
+        if(spArray[0].length>data[i].maximum.toFixed(0)){
+          if(neutronsOnly && data[i].neutron && data[i].neutronDW){
+            spArray[data[i].channel][data[i].maximum.toFixed(0)]++
+          } else if(!data[i].neutron || !data[i].neutronDW){
+            spArray[data[i].channel][data[i].maximum.toFixed(0)]++
           }
         }
-      };
-      for (var i in data){
-        var event = data[i];
-        for(var ch = 0; ch<12; ch++){
-          createSp(event,ch);
-        }
       }
-      return sp
+      return spArray
     } catch(e) {
       console.log("URAN createSpectrum: "+e)
       return false
     }
   },
-  createCountRate:function(data){
+  createCountRate:function(data,devide){
     try {
-      var rates = [0,0,0,0,0,0,0,0,0,0,0,0]
-      for (var i in data){
-        rates[data[i].channel]++;
+      if(devide){
+        var nRates = [0,0,0,0,0,0,0,0,0,0,0,0]
+        var elRates = [0,0,0,0,0,0,0,0,0,0,0,0]
+        for(var i in data){
+          if(data[i].neutron && data[i].neutronDW){
+            nRates[data[i].channel]++
+          } else {
+            elRates[data[i].channel]++
+          }
+        }
+        return [nRates,elRates]
+      } else {
+        var rates = [0,0,0,0,0,0,0,0,0,0,0,0]
+        for (var i in data){
+          rates[data[i].channel]++;
+        }
+        return rates
       }
-      return rates
     } catch (e) {
       console.log("URAN createCountRate: "+e)
       return false
