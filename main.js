@@ -24,7 +24,7 @@ var https_options = {
 var app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-const port = (process.env.PORT || 443);
+const port = (process.env.PORT || 3000);
 const https_server = https.createServer(https_options,app).listen(port);
 app.set('port',port);
 app.use(express.static(__dirname + '/public/'));
@@ -53,7 +53,7 @@ router.post('/authenticate',function(req,res){
 })
 app.use('/api',router)
 var io = io.listen(https_server);
-kernel.io = io
+// kernel.io = io
 
 console.log("Node app started, HTTPS server: @ https://localhost:"+app.get('port')+"/");
 
@@ -94,55 +94,64 @@ io.sockets.on('connection', function (socket) {
 });
 
 //net socket
-var msg = '{"jsonrpc":"2.0","method":"sum","params":{},"id":"2"}'
-console.log(msg)
-var options = {
-  hostname:"192.168.1.189",
-  port:8383,
-  path:'/',
-  method:"POST",
-  headers: {
-    'Content-Type': 'application/x-www-form-urlencoded',
-    'Content-Length': msg.length
-  }
-}
+// var msg = '{"jsonrpc":"2.0","method":"sum","params":{},"id":"2"}'
+// console.log(msg)
+// var options = {
+//   hostname:"192.168.1.189",
+//   port:8383,
+//   path:'/',
+//   method:"POST",
+//   headers: {
+//     'Content-Type': 'application/x-www-form-urlencoded',
+//     'Content-Length': msg.length
+//   }
+// }
+//
+// var req =http.request(options,function(res){
+//   console.log(`STATUS: ${res.statusCode}`);
+//   console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
+//   res.setEncoding('utf8');
+//   res.on('data', (chunk) => {
+//     console.log(`BODY: ${chunk}`);
+//   });
+//   res.on('end', () => {
+//     console.log('No more data in response.')
+//   })
+// })
+//
+// req.on('error',function(err){
+//   console.log("error: "+err.message)
+// })
+//
+// req.write(msg)
+// req.end()
 
-var req =http.request(options,function(res){
-  console.log(`STATUS: ${res.statusCode}`);
-  console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
-  res.setEncoding('utf8');
-  res.on('data', (chunk) => {
-    console.log(`BODY: ${chunk}`);
-  });
-  res.on('end', () => {
-    console.log('No more data in response.')
-  })
-})
-
-req.on('error',function(err){
-  console.log("error: "+err.message)
-})
-
-req.write(msg)
-req.end()
-
-// var socket = new net.Socket()
+var socket = new net.Socket()
 // // var serv = net.createServer(3000)
-// var PORT = 2222
-// var HOST = "192.168.1.189"
+var PORT = 2222
+var HOST = "192.168.1.222"
 //
 //
-// // serv.listen(3000,function(){
-// //   console.log("tcp listening 3000")
-// // })
-// //
-// // serv.on('connection',function(){
-// //   console.log("someone connected")
-// // })
+// serv.listen(3000,function(){
+//   console.log("tcp listening 3000")
+// })
 //
-// socket.connect(PORT,"192.168.1.189",function(){
+// serv.on('connection',function(){
+//   console.log("someone connected")
+// })
+// 
+// socket.connect(PORT,HOST,function(){
 //   console.log('CONNECTED TO: ' + HOST + ':' + PORT);
-//   socket.write("hello")
+//   socket.write('{"jsonrpc":"2.0", "method": "concat", "params": ["first", "second"], "id": 3};')
+// })
+//
+// setTimeout(function(){
+//   console.log("send")
+//   socket.write('{"jsonrpc":"2.0", "method": "concat", "params": ["first", "second"], "id": 3};')
+// },5000)
+//
+// socket.on('close',function(){
+//   console.log('closed')
 // })
 //
 // socket.on('data',function(data){
