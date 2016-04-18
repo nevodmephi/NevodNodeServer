@@ -3,12 +3,18 @@ const parser = nevod.getUranParser()
 const neutron_core = require('./neutron-core.js')
 const fs = require('fs')
 
+var options = JSON.parse(process.env.options__)
+var tasks = options['tasks'], _filename =  options['file'], filetype = '100Mhz',
+    settings = JSON.parse(process.env.settings), isSaveSigs = options['savesigs'],
+    chiptype = options['chiptype'], collection = 'chip100_'+chiptype+"events",
+    collectionStat = 'chip100_'+chiptype+"stat"
+
 var mongo = null
 nevod.initMongoClient(true,function(client){
   mongo = client
   mongo.getDBCollections({startsWith:collectionStat},function(cols){
     if(cols.length == 0){
-      mongo.writeDocsToDb(collectionStat,[{"type":"countrates","crsN":[],"crsEl":[]},{"type":"spectrums","spsN":[],"spsEl":[]}],function(){
+      mongo.writeDocsToDb(collectionStat,[{"type":"countrates","crsN":[],"crsEL":[]},{"type":"spectrums","spsN":[],"spsEL":[]}],function(){
         workout.run()
       })
     } else {
@@ -16,12 +22,6 @@ nevod.initMongoClient(true,function(client){
     }
   })
 })
-
-var options = JSON.parse(process.env.options__)
-var tasks = options['tasks'], _filename =  options['file'], filetype = '100Mhz',
-    settings = JSON.parse(process.env.settings), isSaveSigs = options['savesigs'],
-    chiptype = options['chiptype'], collection = 'chip100_'+chiptype+"events",
-    collectionStat = 'chip100_'+chiptype+"stat"
 
 if(isSaveSigs){
   collection="waveforms_"+_filename.slice(0,_filename.length-4)
@@ -206,6 +206,77 @@ var workout = {
       });
     }
   },
+  parsingJob:function(path,filename,spLength){
+    var runNRates = [0,0,0,0,0,0,0,0,0,0,0,0]
+    var runELRates = [0,0,0,0,0,0,0,0,0,0,0,0]
+    var runNSP = neutron_core.createEmptySpArray(spLength)
+    var runELSP = neutron_core.createEmptySpArray(spLength)
+    parser.parseFileByPart(path+filename,filetype,function(data,info){
+      var signals = neutron_core.packs_process_100mhz(data,20,16,true)
+      var timestamp = info.filestat.birthtime
+      var filenameCRN = settings['save-folder']+chiptype+'/cr/CRN_'+timestamp.getDate()+(timestamp.getMonth()+1)+timestamp.getFullYear()+".dat"
+      var filenameCREL = settings['save-folder']+chiptype+'/cr/CREl_'+timestamp.getDate()+(timestamp.getMonth()+1)+timestamp.getFullYear()+".dat"
+      var filenameSPN = settings['save-folder']+chiptype+'/sp/SPN_'+timestamp.getDate()+(timestamp.getMonth()+1)+timestamp.getFullYear()+".dat"
+      var filenameSPEL = settings['save-folder']+chiptype+'/sp/SPEL_'+timestamp.getDate()+(timestamp.getMonth()+1)+timestamp.getFullYear()+".dat"
+      if(signals.length!=0){
+        var events = neutron_core.neutron_event(signals,0.1,0.6,chiptype,info.filestat.birthtime)
+        signals = null
+        var rates = neutron_core.createCountRate(events,true)
+        runNSP = neutron_core.createSpectrum(events,true,runNSP)
+        runELSP = neutron_core.createSpectrum(events,false,runELSP)
+        for(var i in runNRates){
+          runNRates[i]+=rates[0][i]
+          runELRates[i]+=rates[1][i]
+        }
+        mongo.writeDocsToDb(collection,events,function(){
+          if(info.finished){
+            console.log('parsed')
+            fs.unlink(path+fileToParse,function(err){
+              if(err){
+                console.log("error unlink")
+              }
+            })
+            workout.updateStatistic(filenameCREL,filenameCRN,filenameSPN,filenameSPEL,timestamp,runNRates,runELRates,runELSP,runNSP,spLength)
+          }
+        })
+      } else if(info.finished){
+        signals = null
+        console.log('parsed')
+        fs.unlink(path+filename,function(err){
+          if(err){
+            console.log("error unlink")
+          }
+        })
+        workout.updateStatistic(filenameCREL,filenameCRN,filenameSPN,filenameSPEL,timestamp,runNRates,runELRates,runELSP,runNSP,spLength)
+      }
+    })
+  },
+  updateStatistic:function(filenameCREL,filenameCRN,filenameSPN,filenameSPEL,timestamp,runNRates,runELRates,runELSP,runNSP,spLength){
+    updateCountrates("crsN",timestamp,runNRates,filenameCRN)
+    updateCountrates("crsEL",timestamp,runELRates,filenameCREL)
+    var date = new Date(timestamp.getFullYear(),timestamp.getMonth(),timestamp.getDate())
+    updateSpectrums("spsN",spLength,date,runNSP,filenameSPN)
+    updateSpectrums("spsEL",spLength,date,runELSP,filenameSPEL)
+  },
+  updateCountrates:function(crType,timestamp,rates,file){
+    mongo.updateCollection(collectionStat,{"type":"countrates"},{$push:{crType:{"timestamp":timestamp,"rates":rates}}},false,function(){
+      neutron_core.txt.writeCountRateToFile(file,rates,timestamp,false)
+    })
+  },
+  updateSpectrums:function(spType,spLength,date,spectrums,file){
+    mongo.findDocsInDb(collectionStat,{"type":"spectrums",spType:{$elemMatch:{"date":date}}},{},{},function(data){
+      if(data.length!=0){
+        spectrums = neutron_core.addTwoSpectrums(spectrums,data[0].[spType][0].sp)
+        mongo.updateCollection(collectionStat,{"type":"spectrums",spType+".date":date},{$set:{spType+".$.sp":spectrums}},false,function(){
+          neutron_core.txt.writeSpectrumToFile(file,spectrums,spLength)
+        })
+      } else {
+        mongo.updateCollection(collectionStat,{"type":"spectrums"},{$push:{spType:{"date":date,"sp":spectrums}}},false,function(){
+          neutron_core.txt.writeSpectrumToFile(file,spectrums,spLength)
+        })
+      }
+    })
+  }
 }
 
 var writeZeroLines = function(data){
