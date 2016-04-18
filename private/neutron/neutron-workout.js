@@ -95,13 +95,16 @@ var workout = {
               var fileToParse = oldFileName
               var runNRates = [0,0,0,0,0,0,0,0,0,0,0,0]
               var runElRates = [0,0,0,0,0,0,0,0,0,0,0,0]
-              var runNSP = neutron_core.createEmptySpArray(1000)
-              var runELSP = neutron_core.createEmptySpArray(1000)
+              var spLength = 1000
+              var runNSP = neutron_core.createEmptySpArray(spLength)
+              var runELSP = neutron_core.createEmptySpArray(spLength)
               parser.parseFileByPart(path+fileToParse,filetype,function(data,info){
                 var signals = neutron_core.packs_process_100mhz(data,20,16,true)
                 var timestamp = info.filestat.birthtime
                 var filenameCRN = settings['save-folder']+chiptype+'/cr/CRN_'+timestamp.getDate()+(timestamp.getMonth()+1)+timestamp.getFullYear()+".dat"
                 var filenameCREL = settings['save-folder']+chiptype+'/cr/CREl_'+timestamp.getDate()+(timestamp.getMonth()+1)+timestamp.getFullYear()+".dat"
+                var filenameSPN = settings['save-folder']+chiptype+'/sp/SPN_'+timestamp.getDate()+(timestamp.getMonth()+1)+timestamp.getFullYear()+".dat"
+                var filenameSPEL = settings['save-folder']+chiptype+'/sp/SPEL_'+timestamp.getDate()+(timestamp.getMonth()+1)+timestamp.getFullYear()+".dat"
                 if(signals.length!=0){
                   var events = neutron_core.neutron_event(signals,0.1,0.6,chiptype,info.filestat.birthtime)
                   signals = null
@@ -128,21 +131,26 @@ var workout = {
                       })
                       var today = new Date(timestamp.getFullYear(),timestamp.getMonth(),timestamp.getDate())
                       mongo.findDocsInDb(collectionStat,{"type":"spectrums","spsN":{$elemMatch:{"date":today}}},{},{},function(data){
-                        // console.log(data)
                         if(data.length!=0){
-                          console.log(data[0].spsN[0].sp[0])
-                          console.log("------")
-                          console.log(runNSP[0])
-
                           runNSP = neutron_core.addTwoSpectrums(runNSP,data[0].spsN[0].sp)
-                          console.log("------")
-                          console.log(runNSP[0])
-                          mongo.updateCollection(collectionStat,{"type":"spectrums","spsN":{$elemMatch:{"date":today}}},{"data":today,"sp":runNSP},false,function(){
-                            console.log('updated')
+                          mongo.updateCollection(collectionStat,{"type":"spectrums","spsN.date":today},{$set:{"spsN.$.sp":runNSP}},false,function(){
+                            neutron_core.txt.writeSpectrumToFile(filenameSPN,runNSP,spLength)
                           })
                         } else {
                           mongo.updateCollection(collectionStat,{"type":"spectrums"},{$push:{"spsN":{"date":today,"sp":runNSP}}},false,function(){
-
+                            neutron_core.txt.writeSpectrumToFile(filenameSPN,runNSP,spLength)
+                          })
+                        }
+                      })
+                      mongo.findDocsInDb(collectionStat,{"type":"spectrums","spsEl":{$elemMatch:{"date":today}}},{},{},function(data){
+                        if(data.length!=0){
+                          runELSP = neutron_core.addTwoSpectrums(runELSP,data[0].spsEl[0].sp)
+                          mongo.updateCollection(collectionStat,{"type":"spectrums","spsEl.date":today},{$set:{"spsEl.$.sp":runELSP}},false,function(){
+                            neutron_core.txt.writeSpectrumToFile(filenameSPEL,runELSP,spLength)
+                          })
+                        } else {
+                          mongo.updateCollection(collectionStat,{"type":"spectrums"},{$push:{"spsEl":{"date":today,"sp":runELSP}}},false,function(){
+                            neutron_core.txt.writeSpectrumToFile(filenameSPEL,runELSP,spLength)
                           })
                         }
                       })
@@ -151,9 +159,41 @@ var workout = {
                   data = null;
                 } else if (info.finished){
                   signals = null
+                  console.log('parsed')
                   fs.unlink(path+fileToParse,function(err){
                     if(err){
                       console.log("error unlink")
+                    }
+                  })
+                  mongo.updateCollection(collectionStat,{"type":"countrates"},{$push:{"crsN":{"timestamp":timestamp,"rates":runNRates}}},false,function(){
+                    neutron_core.txt.writeCountRateToFile(filenameCRN,runNRates,timestamp,false)
+                  })
+                  mongo.updateCollection(collectionStat,{"type":"countrates"},{$push:{"crsEl":{"timestamp":timestamp,"rates":runElRates}}},false,function(){
+                    neutron_core.txt.writeCountRateToFile(filenameCREL,runElRates,timestamp,false)
+                  })
+                  var today = new Date(timestamp.getFullYear(),timestamp.getMonth(),timestamp.getDate())
+                  mongo.findDocsInDb(collectionStat,{"type":"spectrums","spsN":{$elemMatch:{"date":today}}},{},{},function(data){
+                    if(data.length!=0){
+                      runNSP = neutron_core.addTwoSpectrums(runNSP,data[0].spsN[0].sp)
+                      mongo.updateCollection(collectionStat,{"type":"spectrums","spsN.date":today},{$set:{"spsN.$.sp":runNSP}},false,function(){
+                        neutron_core.txt.writeSpectrumToFile(filenameSPN,runNSP,spLength)
+                      })
+                    } else {
+                      mongo.updateCollection(collectionStat,{"type":"spectrums"},{$push:{"spsN":{"date":today,"sp":runNSP}}},false,function(){
+                        neutron_core.txt.writeSpectrumToFile(filenameSPN,runNSP,spLength)
+                      })
+                    }
+                  })
+                  mongo.findDocsInDb(collectionStat,{"type":"spectrums","spsEl":{$elemMatch:{"date":today}}},{},{},function(data){
+                    if(data.length!=0){
+                      runELSP = neutron_core.addTwoSpectrums(runELSP,data[0].spsEl[0].sp)
+                      mongo.updateCollection(collectionStat,{"type":"spectrums","spsEl.date":today},{$set:{"spsEl.$.sp":runELSP}},false,function(){
+                        neutron_core.txt.writeSpectrumToFile(filenameSPEL,runELSP,spLength)
+                      })
+                    } else {
+                      mongo.updateCollection(collectionStat,{"type":"spectrums"},{$push:{"spsEl":{"date":today,"sp":runELSP}}},false,function(){
+                        neutron_core.txt.writeSpectrumToFile(filenameSPEL,runELSP,spLength)
+                      })
                     }
                   })
                   // neutron_core.txt.writeCountRateToFile(filenameCRN,runNRates,timestamp,false)
