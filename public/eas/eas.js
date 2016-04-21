@@ -78,11 +78,13 @@ var chooseBinFile = function(file){
 }
 
 var parseFile = function(){
-  var type = $("input[name='parser-type']:checked").val()
-  var isSaveSigs = $("#id_save-sigs").is(":checked")
-  var sigampl = parseInt($("#id_parser-sig-ampl").val())
-  if(fileToParse.length==0 || fileToParse.slice(fileToParse.length-3,fileToParse.length) != "bin"){return;}
-  socket.emit('parse-file',{proc:"node",options:{tasks:['parse','dbsave','prismatxt'],file:fileToParse,type:"200Mhz_"+type,savesigs:isSaveSigs,sigampl:sigampl}})
+	var type = $("input[name='parser-type']:checked").val()
+	var isSaveSigs = $("#id_save-sigs").is(":checked")
+	var sigampl = parseInt($("#id_parser-sig-ampl").val())
+	var master = parseInt($("#id_parser-sig-master").val())
+	var nsum = parseInt($("#id_parser-sig-n").val())
+	if(fileToParse.length==0 || fileToParse.slice(fileToParse.length-3,fileToParse.length) != "bin"){return;}
+	socket.emit('parse-file',{proc:"node",options:{tasks:['parse','dbsave','prismatxt'],file:fileToParse,type:"200Mhz_"+type,savesigs:isSaveSigs,sigampl:sigampl,master:master,nsum:nsum}})
 }
 
 var setMode = function(mode){

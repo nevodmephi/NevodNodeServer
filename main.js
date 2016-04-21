@@ -2,6 +2,11 @@ const express = require("express");
 const nevod = require("nevod");
 var io = require("socket.io");
 
+process.on('uncaughtException', function (err) {
+	console.error((new Date).toUTCString() + ' uncaughtException:', err)
+	process.exit(1)
+})
+
 const task = (process.env.TASK || "neutron")
 if(task != "eas" && task != "neutron" && task != "all"){
 	console.log(task+" - is unkown task environment variable, use ONLY: 'eas' or 'neutron' or 'all' for TASK ")

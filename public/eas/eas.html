@@ -1,97 +1,100 @@
 <!DOCTYPE html>
 <html>
-  <head>
-      <title>ШАЛ</title>
-      <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
-      <link href="/eas.css" rel="stylesheet">
-      <link href="/bootstrap.min.css" rel="stylesheet">
-  </head>
-  <body onload="main()">
-    <!-- навигация -->
-    <nav class="navbar navbar-default navbar-fixed-top navbar-custom">
-      <a class="navbar-brand" href="#"><table><tr><td><img class="logo" alt="Uran" src="uran-logo.png"></td><td>&nbsp;&nbsp;<b class="project-name">ШАЛ</b>&nbsp;&nbsp;</td></tr></table></a>
-      <ul class="nav navbar-nav">
-        <li class="active" id="id_main-menu">
-          <a id="id_main-menu-tab" class="navbar-button-custom navbar-button sliding-tab sliding-tab-active" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('main-menu')">Главное меню</a>
-        </li>
-        <li id="id_controll">
-          <a id="id_controll-tab" class="navbar-button-custom navbar-button sliding-tab" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('controll')">Визуализатор событий</a>
-        </li>
-        <li id="id_osc">
-          <a id="id_osc-tab" class="navbar-button-custom navbar-button sliding-tab" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('osc')">Осцилограф</a>
-        </li>
-        <li id="id_bd">
-          <a id="id_bd-tab" class="navbar-button-custom navbar-button sliding-tab" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('bd')">База данных</a>
-        </li>
-        <li id="id_settings">
-          <a id="id_settings-tab" class="navbar-button-custom navbar-button sliding-tab" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('settings')">Настройки</a>
-        </li>
-      </ul>
-    </nav>
+	<head>
+		<title>ШАЛ</title>
+      	<meta http-equiv="content-type" content="text/html;charset=utf-8"/>
+      	<link href="/eas.css" rel="stylesheet">
+      	<link href="/bootstrap.min.css" rel="stylesheet">
+	</head>
+	<body onload="main()">
+		<!-- навигация -->
+		<nav class="navbar navbar-default navbar-fixed-top navbar-custom">
+			<a class="navbar-brand" href="#"><table><tr><td><img class="logo" alt="Uran" src="uran-logo.png"></td><td>&nbsp;&nbsp;<b class="project-name">ШАЛ</b>&nbsp;&nbsp;</td></tr></table></a>
+			<ul class="nav navbar-nav">
+      			<li class="active" id="id_main-menu">
+					<a id="id_main-menu-tab" class="navbar-button-custom navbar-button sliding-tab sliding-tab-active" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('main-menu')">Главное меню</a>
+				</li>
+      			<li id="id_controll">
+      				<a id="id_controll-tab" class="navbar-button-custom navbar-button sliding-tab" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('controll')">Визуализатор событий</a>
+      			</li>
+      			<li id="id_osc">
+      				<a id="id_osc-tab" class="navbar-button-custom navbar-button sliding-tab" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('osc')">Осцилограф</a>
+      			</li>
+      			<li id="id_bd">
+      				<a id="id_bd-tab" class="navbar-button-custom navbar-button sliding-tab" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('bd')">База данных</a>
+				</li>
+      			<li id="id_settings">
+					<a id="id_settings-tab" class="navbar-button-custom navbar-button sliding-tab" role="button" aria-haspopup="true" aria-expanded="false" onclick="setMode('settings')">Настройки</a>
+				</li>
+			</ul>
+		</nav>
 
-    <!-- контейнеры -->
-    <div class="main-menu-container view-container">
-      <div class="parser panel panel-primary panel-custom">
-        <div class="parser-heading panel-heading panel-heading-custom">Парсер</div>
-        <div class="parser-body panel-body">
-          <div class="inline btn-group parser-controll" role="group">
-            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" onclick="browseFiles()">Выбрать файл <span class="caret"></span></button>
-            <ul class="dropdown-menu dropdown-binfiles scrollable-menu"></ul>
-            <div class="inline parser-info">Файл: <b class="bin-name">Не выбран, выбирите файл</b>
-              <button type="button" class="btn btn-warning begin-parse" style="margin-left:30px;" onclick="parseFile()">Начать парсить</button>
-            </div>
-          </div>
-          <div class="inline checkbox parser-type-chooser">
-            Тип файла:
-            <div class="inline parser-type-radio"><input type="radio" name="parser-type" class="custom-checkbox" id="id_tail" value="tail" checked><label for="id_tail"> С хвостом</label></div>
-            <div class="inline parser-type-radio"><input type="radio" name="parser-type" class="custom-checkbox" id="id_notail" value="notail"><label for="id_notail"> Без хвоста</label></div>
-            <div class="parser-sig-checkbox">
-              <input type="checkbox" class="custom-checkbox_v2" name="parser-save-sigs" id="id_save-sigs"/>
-              <label for="id_save-sigs">Сохранять сигналы в файл,</label>
-              <div class="inline">амплитуда: <input type="text" class="inline form-control" id="id_parser-sig-ampl" style="max-width:80px;" maxlength="4" aria-label="..." value="0"></div>
-            </div>
-          </div>
-          <div class="panel panel-default parser-proc-view">
-            <div class="panel-heading" style="font-weight: 600 !important;">Процессы в работе</div>
-            <table class="table">
-              <thead class="parser-table"><th style="width:20%">Название файла</th><th style="width:45%">Состояние</th><th>Время прошло</th><th>Tип файла</th><th>RAM Usage, MB</th><th></th></thead>
-              <tbody class="parser-tbody"><tr id="id_no-procs"><td style="width:20%; border:0px;">нет запущенных процессов</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
+		<!-- контейнеры -->
+		<div class="main-menu-container view-container">
+      		<div class="parser panel panel-primary panel-custom">
+		      	<div class="parser-heading panel-heading panel-heading-custom">Парсер</div>
+		      	<div class="parser-body panel-body">
+					<div class="inline btn-group parser-controll" role="group">
+						<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" onclick="browseFiles()">Выбрать файл <span class="caret"></span></button>
+						<ul class="dropdown-menu dropdown-binfiles scrollable-menu"></ul>
+						<div class="inline parser-info">Файл: <b class="bin-name">Не выбран, выбирите файл</b>
+							<button type="button" class="btn btn-warning begin-parse" style="margin-left:30px;" onclick="parseFile()">Начать парсить</button>
+						</div>
+					</div>
+					<div class="inline checkbox parser-type-chooser">
+						Тип файла:
+						<div class="inline parser-type-radio"><input type="radio" name="parser-type" class="custom-checkbox" id="id_tail" value="tail" checked><label for="id_tail"> С хвостом</label></div>
+						<div class="inline parser-type-radio"><input type="radio" name="parser-type" class="custom-checkbox" id="id_notail" value="notail"><label for="id_notail"> Без хвоста</label></div>
+						<div class="parser-sig-checkbox">
+							<input type="checkbox" class="custom-checkbox_v2" name="parser-save-sigs" id="id_save-sigs"/>
+							<label for="id_save-sigs">Сохранять сигналы в файл,</label>
+							<div class="inline">амплитуда: <input type="text" class="inline form-control" id="id_parser-sig-ampl" style="max-width:80px;" maxlength="4" aria-label="..." value="0"></div>
+							<div class="">мастер: <input type="text" class="inline form-control" id="id_parser-sig-master" style="max-width:40px;" maxlength="1" aria-label="..." value="8"> Возмножные значения: 0,1,2,3,4,5,6,7, 8-все</div>
+							<div class="">Количеств нейтронов: <input type="text" class="inline form-control" id="id_parser-sig-n" style="max-width:60px;" maxlength="2" aria-label="..." value="0"></div>
+						</div>
+					</div>
+					<div class="panel panel-default parser-proc-view">
+						<div class="panel-heading" style="font-weight: 600 !important;">Процессы в работе</div>
+						<table class="table">
+							<thead class="parser-table"><th style="width:20%">Название файла</th><th style="width:45%">Состояние</th><th>Время прошло</th><th>Tип файла</th><th>RAM Usage, MB</th><th></th></thead>
+							<tbody class="parser-tbody"><tr id="id_no-procs"><td style="width:20%; border:0px;">нет запущенных процессов</td></tr></tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
 
-    <div class="controll-container view-container">
-      <svg class="svg-view" id="id_svg"></svg>
-    </div>
+		<div class="controll-container view-container">
+			<svg class="svg-view" id="id_svg"></svg>
+		</div>
 
-    <div class="osc-container view-container">
-      осцилоскоп
-    </div>
+		<div class="osc-container view-container">
+			осцилоскоп
+		</div>
 
-    <div class="bd-container view-container">
-      база данных
-    </div>
+		<div class="bd-container view-container">
+			база данных
+		</div>
 
-    <div class="settings-container view-container">
-      <div id="id_save-folder-info">
-        Куда сохраняется текстовый файл: <span id="id_save-path"></span>
-        <button onclick="changeSettings('save-folder',$('#id_new-save-path'))">Изменить</button>
-        <input id="id_new-save-path" size="50">
-      </div>
-      <div id="id_bin-folder-info">
-        Откуда загружается bin файл: <span id="id_bin-path"></span>
-        <button onclick="changeSettings('bin-folder',$('#id_new-bin-path'))">Изменить</button>
-        <input id="id_new-bin-path" size="50">
-      </div>
-    </div>
 
-    <!-- скрипты -->
-    <script src="/snap.svg-min.js"></script>
-    <script src="/jquery-2.1.4.min.js"></script>
-    <script src="/bootstrap.min.js"></script>
-    <script>document.write('<script src="//'+ location.hostname + ':'+location.port+'/socket.io/socket.io.js">\x3C/script>')</script>
-    <script src="/eas.js"></script>
-  </body>
+		<div class="settings-container view-container">
+			<div id="id_save-folder-info">
+				Куда сохраняется текстовый файл: <span id="id_save-path"></span>
+				<button onclick="changeSettings('save-folder',$('#id_new-save-path'))">Изменить</button>
+				<input id="id_new-save-path" size="50">
+			</div>
+			<div id="id_bin-folder-info">
+				Откуда загружается bin файл: <span id="id_bin-path"></span>
+				<button onclick="changeSettings('bin-folder',$('#id_new-bin-path'))">Изменить</button>
+				<input id="id_new-bin-path" size="50">
+			</div>
+		</div>
+
+		<!-- скрипты -->
+		<script src="/snap.svg-min.js"></script>
+		<script src="/jquery-2.1.4.min.js"></script>
+		<script src="/bootstrap.min.js"></script>
+		<script>document.write('<script src="//'+ location.hostname + ':'+location.port+'/socket.io/socket.io.js">\x3C/script>')</script>
+		<script src="/eas.js"></script>
+	</body>
 </html>

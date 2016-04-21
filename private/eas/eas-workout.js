@@ -19,7 +19,9 @@ var _tasks = options['tasks'],
 		_filetype = options['type'],
 		_settings = JSON.parse(process.env.settings),
 		isSaveSigs = options['savesigs'],
-		sigampl = options['sigampl']
+		sigampl = options['sigampl'],
+		masterSaving = options['master'],
+		nsumSaving = options['nsum']
 
 if(_settings['bin-folder'][0]=='.'){
 	_settings['bin-folder'] = '.'+_settings['bin-folder']
@@ -127,7 +129,7 @@ var savePrismaTypeTXTNoTail = function(data,path,name){
 
 var uranEASEvent = function(data){
 	var events = [];
-	var nlvl = 4;
+	var nlvl = 10;
 	var ampllvl = 10;
 	for(i in data){
 		var master = 0;
@@ -136,25 +138,38 @@ var uranEASEvent = function(data){
 			maxs:data[i].maxs,
 			number:data[i].number
 		}
-		var tails = data[i].tail;
+		var tails = data[i].tails;
+		// console.log(tails[0].length)
 		var neutrons = [0,0,0,0,0,0,0,0,0,0,0,0];
 		for (j in tails){
 			var tail = tails[j];
+			// console.log(tail.length)
 			var xs = 0, xe = 0, isN = false;
-			for(k in tail){
+			// console.log(tail.length)
+			for(k=0;k<tail.length-1;k++){
+				// var ampl2behind = tail[k-2]
+				// var ampl1behind = tail[k-1]
 				var tampl = tail[k];
-				if(tampl>=nlvl && !isN) {
-					xs = k;
-					isN = true;
+				if(tampl>=nlvl && tail[k+1]>=4){
+					neutrons[j]++;
 				}
-				if(tampl<nlvl && isN) {
-					xe = k;
-					isN = false;
-					var dt = xe - xs;
-					if(dt>=2){
-						neutrons[j]++;
-					}
-				}
+				// var d1 = tampl - ampl1behind
+				// var d2 = ampl1behind - ampl2behind
+				// if(d1+d2>=nlvl){
+				// 	neutrons[j]++;
+				// }
+				// if(tampl>=nlvl && !isN) {
+				// 	xs = k;
+				// 	isN = true;
+				// }
+				// if(tampl<nlvl && isN) {
+				// 	xe = k;
+				// 	isN = false;
+				// 	var dt = xe - xs;
+				// 	if(dt>=2){
+				// 		neutrons[j]++;
+				// 	}
+				// }
 			}
 		}
 		event.neutrons = neutrons;
@@ -168,13 +183,17 @@ var uranEASEvent = function(data){
 			msum+=data[i].maxs[j]
 			if (data[i].maxs[j]>=ampllvl){ ndet++; }
 		}
-		if(isSaveSigs && msum>=sigampl){
-			txtsys.saveSignalsTXT(_settings['save-folder']+"SIG_"+_filename.slice(0,_filename.length-4)+".dat",data[i],false)
-		}
 		master = ndet>=2?master+1:master;
 		master = msum>=150?master+2:master;
 		master = nsum>=5?master+4:master;
 		event.master = master;
+		if(isSaveSigs && msum>=sigampl && nsum>=nsumSaving){
+			if(masterSaving>7){
+				txtsys.saveSignalsTXT(_settings['save-folder']+"SIG_"+_filename.slice(0,_filename.length-4)+".dat",data[i],false)
+			} else if(master==masterSaving){
+				txtsys.saveSignalsTXT(_settings['save-folder']+"SIG_"+_filename.slice(0,_filename.length-4)+".dat",data[i],false)
+			}
+		}
 		events.push(event);
 	}
 	return events;
@@ -197,12 +216,16 @@ var uranEASEventNoTail = function(data){
 			msum+=data[i].maxs[j]
 			if (data[i].maxs[j]>=ampllvl){ ndet++; }
 		}
-		if(isSaveSigs && msum>=sigampl){
-			txtsys.saveSignalsTXT(_settings['save-folder']+"SIG_"+_filename.slice(0,_filename.length-4)+".dat",data[i],false)
-		}
 		master = ndet>=2?master+1:master;
 		master = msum>=150?master+2:master;
 		event.master = master
+		if(isSaveSigs && msum>=sigampl){
+			if(masterSaving>7){
+				txtsys.saveSignalsTXT(_settings['save-folder']+"SIG_"+_filename.slice(0,_filename.length-4)+".dat",data[i],false)
+			} else if(master==masterSaving){
+				txtsys.saveSignalsTXT(_settings['save-folder']+"SIG_"+_filename.slice(0,_filename.length-4)+".dat",data[i],false)
+			}
+		}
 		events.push(event)
 	}
 	return events;
@@ -216,10 +239,11 @@ var parsedPackagesHandling = function(data){
 		var zsigs = [], ztails = [], maxs = [];
 		for (var j in pack.signal){
 			var sig = pack.signal[j];
-			var tail = pack.tail[j].slice(500,pack.tail[j].length);
+			// var tail = pack.tail[j].slice(500,pack.tail[j].length);
+			var tail = pack.tail[j]
 			var max = Math.round(u_math.max_of_array(sig));
 			if(zero_lines.length<12){
-				zero_lines.push(Math.round(u_math.avarage(tail)));
+				zero_lines.push(Math.round(u_math.avarage(sig.slice(50,200))));
 			}
 			var zsig = [];
 			var ztail = [];
@@ -239,7 +263,7 @@ var parsedPackagesHandling = function(data){
 			signal:zsigs,
 			time:pack.time,
 			maxs:maxs,
-			tail:ztails,
+			tails:ztails,
 			z_lines:zero_lines,
 			number:pack.number
 		}

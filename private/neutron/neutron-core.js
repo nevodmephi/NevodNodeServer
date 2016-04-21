@@ -59,7 +59,7 @@ module.exports = {
 			}
 			return signals
 		} catch(e) {
-			console.log("URAN packs process 100mhz error: " + e)
+			console.error((new Date).toUTCString()+" URAN packs process 100mhz error: " + e)
 			return false
 		}
 	},
@@ -79,7 +79,7 @@ module.exports = {
 					zero_line:data[i].zero_line,
 					minimum:this.u_math.min_of_array(data[i].signal),
 					avg:data[i].avg,
-					dw:this.u_math.derivativeWidth(this.u_math.derivative(data[i].signal.slice(0,1200)),dwtreshold),
+					dw:this.u_math.derivativeWidth(this.u_math.derivative(data[i].signal.slice(400,1500)),dwtreshold),
 					charges: this.u_math.charge_ratio(data[i].signal,110,data[i].max)
 				};
 				if(isSaveSigs){
@@ -95,7 +95,7 @@ module.exports = {
 			}
 			return events
 		} catch(e) {
-			console.log("URAN neutron event error: " + e)
+			console.error((new Date).toUTCString()+" URAN neutron event error: " + e)
 			return false
 		}
 	},
@@ -129,14 +129,14 @@ module.exports = {
 				if(spArray[0].length>data[i].maximum.toFixed(0)){
 					if(neutronsOnly && data[i].neutron && data[i].neutronDW){
 						spArray[data[i].channel][data[i].maximum.toFixed(0)]++
-					} else if(!data[i].neutron || !data[i].neutronDW){
+					} else if(!neutronsOnly && (!data[i].neutron || !data[i].neutronDW)){
 						spArray[data[i].channel][data[i].maximum.toFixed(0)]++
 					}
 				}
 			}
 			return spArray
 		} catch(e) {
-			console.log("URAN createSpectrum: "+e)
+			console.error((new Date).toUTCString()+" URAN createSpectrum: "+e)
 			return false
 		}
 	},
@@ -161,8 +161,23 @@ module.exports = {
 				return rates
 			}
 		} catch (e) {
-			console.log("URAN createCountRate: "+e)
+			console.error((new Date).toUTCString()+" URAN createCountRate: "+e)
 			return false
+		}
+	},
+	createFrontsDistribution:function(data,fnsS,fnsDW){
+		try {
+			for(var i in data){
+				if(fnsS[data[i].channel][(data[i].charge_ratio*100).toFixed(0)]!=undefined){
+					fnsS[data[i].channel][(data[i].charge_ratio*100).toFixed(0)]++
+				}
+				if(fnsDW[data[i].channel][data[i].dw.toFixed(0)]!=undefined){
+					fnsDW[data[i].channel][data[i].dw.toFixed(0)]++
+				}
+			}
+			return [fnsS,fnsDW]
+		} catch(e){
+			console.error((new Date).toUTCString()+" URAN createFrontsDistribution: "+e)
 		}
 	}
 }
