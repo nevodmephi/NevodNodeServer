@@ -1,6 +1,9 @@
+'use strict'
+
 const nevod = require('nevod')
 const parser = nevod.getUranParser()
 const neutron_core = require('./neutron-core.js')
+const logger = nevod.getLogger()
 const fs = require('fs')
 
 process.on('uncaughtException', function (err) {
@@ -66,9 +69,9 @@ var workout = {
 					process.exit()
 				}
 				donePercent = info.status
-				var signals = neutron_core.packs_process_100mhz(data,20,16,true)
+				let signals = neutron_core.packs_process_100mhz(data,20,16,true)
 				if(signals.length!=0){
-					var events = neutron_core.neutron_event(signals,0.1,0.6,chiptype,info.filestat.birthtime)
+					let events = neutron_core.neutron_event(signals,0.1,0.6,chiptype,info.filestat.birthtime)
 					signals = null
 					var timestamp = info.filestat.birthtime
 					mongo.writeDocsToDb(collection,events,function(){
@@ -119,25 +122,24 @@ var workout = {
 		var frontS = neutron_core.createEmptySpArray(FRDISTRSIMPLELENGTH)
 		var frontDW = neutron_core.createEmptySpArray(FRDISTRDWLENGTH)
 		parser.parseFileByPart(path+filename,filetype,function(data,info){
-			var signals = neutron_core.packs_process_100mhz(data,20,16,true)
-			var timestamp = info.filestat.birthtime
-			var filenameCRN = settings['save-folder']+chiptype+'/cr/CRN_'+timestamp.getDate()+(timestamp.getMonth()+1)+timestamp.getFullYear()+".dat"
-			var filenameCREL = settings['save-folder']+chiptype+'/cr/CREl_'+timestamp.getDate()+(timestamp.getMonth()+1)+timestamp.getFullYear()+".dat"
-			var filenameSPN = settings['save-folder']+chiptype+'/sp/SPN_'+timestamp.getDate()+(timestamp.getMonth()+1)+timestamp.getFullYear()+".dat"
-			var filenameSPEL = settings['save-folder']+chiptype+'/sp/SPEL_'+timestamp.getDate()+(timestamp.getMonth()+1)+timestamp.getFullYear()+".dat"
-			var filenameFS = settings['save-folder']+chiptype+'/fr/FSIMPLE_'+timestamp.getDate()+(timestamp.getMonth()+1)+timestamp.getFullYear()+".dat"
-			var filenameFDW = settings['save-folder']+chiptype+'/fr/FDW_'+timestamp.getDate()+(timestamp.getMonth()+1)+timestamp.getFullYear()+".dat"
+			let signals = neutron_core.packs_process_100mhz(data,20,16,true)
+			let timestamp = info.filestat.birthtime
+			let filenameCRN = settings['save-folder']+chiptype+'/cr/CRN_'+timestamp.getDate()+(timestamp.getMonth()+1)+timestamp.getFullYear()+".dat"
+			let filenameCREL = settings['save-folder']+chiptype+'/cr/CREl_'+timestamp.getDate()+(timestamp.getMonth()+1)+timestamp.getFullYear()+".dat"
+			let filenameSPN = settings['save-folder']+chiptype+'/sp/SPN_'+timestamp.getDate()+(timestamp.getMonth()+1)+timestamp.getFullYear()+".dat"
+			let filenameSPEL = settings['save-folder']+chiptype+'/sp/SPEL_'+timestamp.getDate()+(timestamp.getMonth()+1)+timestamp.getFullYear()+".dat"
+			let filenameFS = settings['save-folder']+chiptype+'/fr/FSIMPLE_'+timestamp.getDate()+(timestamp.getMonth()+1)+timestamp.getFullYear()+".dat"
+			let filenameFDW = settings['save-folder']+chiptype+'/fr/FDW_'+timestamp.getDate()+(timestamp.getMonth()+1)+timestamp.getFullYear()+".dat"
 			if(signals.length!=0){
-				var events = neutron_core.neutron_event(signals,0.1,0.6,chiptype,info.filestat.birthtime)
+				let events = neutron_core.neutron_event(signals,0.1,0.6,chiptype,info.filestat.birthtime)
 				signals = null
-				var rates = neutron_core.createCountRate(events,true)
+				let rates = neutron_core.createCountRate(events,true)
 				runNSP = neutron_core.createSpectrum(events,true,runNSP)
 				runELSP = neutron_core.createSpectrum(events,false,runELSP)
-				var fronts = neutron_core.createFrontsDistribution(events,frontS,frontDW)
-				frontS = fronts[0]
-				frontDW = fronts[1]
+				let fronts = neutron_core.createFrontsDistribution(events,frontS,frontDW)
+				frontS = fronts[0], frontDW = fronts[1]
 				fronts = null
-				for(var i in runNRates){
+				for(let i in runNRates){
 					runNRates[i]+=rates[0][i]
 					runELRates[i]+=rates[1][i]
 				}
@@ -167,34 +169,34 @@ var workout = {
 	updateStatistic:function(filenameCREL,filenameCRN,filenameSPN,filenameSPEL,timestamp,runNRates,runELRates,runELSP,runNSP,spLength,filenameFS,filenameFDW,fnsS,fnsDW){
 		this.updateCountrates("crsN",timestamp,runNRates,filenameCRN)
 		this.updateCountrates("crsEL",timestamp,runELRates,filenameCREL)
-		var date = new Date(timestamp.getFullYear(),timestamp.getMonth(),timestamp.getDate())
+		let date = new Date(timestamp.getFullYear(),timestamp.getMonth(),timestamp.getDate())
 		this.updateSpectrums("spectrums","spsN",spLength,date,runNSP,filenameSPN)
 		this.updateSpectrums("spectrums","spsEL",spLength,date,runELSP,filenameSPEL)
 		this.updateSpectrums("fronts","fnsSimple",FRDISTRSIMPLELENGTH,date,fnsS,filenameFS)
 		this.updateSpectrums("fronts","fnsDW",FRDISTRDWLENGTH,date,fnsDW,filenameFDW)
 	},
 	updateCountrates:function(crType,timestamp,rates,file){
-		var update = {$push:{}}
+		let update = {$push:{}}
 		update.$push[crType] = {"timestamp":timestamp,"rates":rates}
 		mongo.updateCollection(collectionStat,{"type":"countrates"},update,false,function(){
 			neutron_core.txt.writeCountRateToFile(file,rates,timestamp,false)
 		})
 	},
 	updateSpectrums:function(spFamily,spType,spLength,date,spectrums,file){
-		var query = {"type":spFamily}
-		query[spType] = {$elemMatch:{"date":date}}
-		mongo.findDocsInDb(collectionStat,query,{},{},function(data){
+		let fquery = {"type":spFamily}
+		fquery[spType] = {$elemMatch:{"date":date}}
+		mongo.findDocsInDb(collectionStat,fquery,{},{},function(data){
 			if(data.length!=0){
 				spectrums = neutron_core.addTwoSpectrums(spectrums,data[0][spType][0].sp)
-				var query = {"type":spFamily}
+				let query = {"type":spFamily}
 				query[spType+".date"] = date
-				var update = {$set:{}}
+				let update = {$set:{}}
 				update.$set[spType+".$.sp"] = spectrums
 				mongo.updateCollection(collectionStat,query,update,false,function(){
 					neutron_core.txt.writeSpectrumToFile(file,spectrums,spLength)
 				})
 			} else {
-				var query = {$push:{}}
+				let query = {$push:{}}
 				query.$push[spType] = {"date":date,"sp":spectrums}
 				mongo.updateCollection(collectionStat,{"type":spFamily},query,false,function(){
 					neutron_core.txt.writeSpectrumToFile(file,spectrums,spLength)

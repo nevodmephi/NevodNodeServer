@@ -8,11 +8,13 @@
   createSpectrum;
   createCountRate;
 */
-var nevod = require('nevod')
+'use strict'
 
-_txtsavefolder = null
-_filename = "unkown"
-isSaveSigs = false
+const nevod = require('nevod')
+
+var _txtsavefolder = null,
+	_filename = "unkown",
+	isSaveSigs = false
 
 module.exports = {
 	u_math:nevod.getUranMathLib(),
@@ -79,7 +81,7 @@ module.exports = {
 					zero_line:data[i].zero_line,
 					minimum:this.u_math.min_of_array(data[i].signal),
 					avg:data[i].avg,
-					dw:this.u_math.derivativeWidth(this.u_math.derivative(data[i].signal.slice(400,1500)),dwtreshold),
+					dw:this.u_math.derivativeWidth(this.u_math.derivative(data[i].signal.slice(0,1500)),dwtreshold),
 					charges: this.u_math.charge_ratio(data[i].signal,110,data[i].max)
 				};
 				if(isSaveSigs){

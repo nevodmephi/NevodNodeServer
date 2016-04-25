@@ -1,3 +1,5 @@
+'use strict'
+
 const express = require("express");
 const nevod = require("nevod");
 var io = require("socket.io");
