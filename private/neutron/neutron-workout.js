@@ -11,10 +11,10 @@ process.on('uncaughtException', function (err) {
 	process.exit(1)
 })
 
-const FRDISTRSIMPLELENGTH = 101
-const FRDISTRDWLENGTH = 1000
+const FRDISTRSIMPLELENGTH = 101;
+const FRDISTRDWLENGTH = 500;
 
-var options = JSON.parse(process.env.options__)
+var options = JSON.parse(process.env.options__);
 var tasks = options['tasks'],
 		_filename =  options['file'],
 		filetype = '100Mhz',
@@ -22,7 +22,7 @@ var tasks = options['tasks'],
 		isSaveSigs = options['savesigs'],
 		chiptype = options['chiptype'],
 		collection = 'chip100_'+chiptype+"events",
-		collectionStat = 'chip100_'+chiptype+"stat"
+		collectionStat = 'chip100_'+chiptype+"stat";
 
 var mongo = null
 nevod.initMongoClient(true,function(client){
@@ -71,8 +71,14 @@ var workout = {
 				donePercent = info.status
 				let signals = neutron_core.packs_process_100mhz(data,20,16,true)
 				if(signals.length!=0){
-					let events = neutron_core.neutron_event(signals,0.1,0.6,chiptype,info.filestat.birthtime)
-					signals = null
+					let events = neutron_core.neutron_event(signals,{
+						chip:chiptype,
+						charge_offset:110,
+						nthreshold:0.6,
+						ndwthreshold:110,
+						timestamp:info.filestat.birthtime
+					});
+					signals = null;
 					var timestamp = info.filestat.birthtime
 					mongo.writeDocsToDb(collection,events,function(){
 						if(info.finished){
@@ -115,15 +121,16 @@ var workout = {
 		}
 	},
 	parsingJob:function(path,filename,spLength){
-		var runNRates = [0,0,0,0,0,0,0,0,0,0,0,0]
-		var runELRates = [0,0,0,0,0,0,0,0,0,0,0,0]
-		var runNSP = neutron_core.createEmptySpArray(spLength)
-		var runELSP = neutron_core.createEmptySpArray(spLength)
-		var frontS = neutron_core.createEmptySpArray(FRDISTRSIMPLELENGTH)
-		var frontDW = neutron_core.createEmptySpArray(FRDISTRDWLENGTH)
+		var runNRates = [0,0,0,0,0,0,0,0,0,0,0,0];
+		var runELRates = [0,0,0,0,0,0,0,0,0,0,0,0];
+		var runNSP = neutron_core.createEmptySpArray(spLength);
+		var runELSP = neutron_core.createEmptySpArray(spLength);
+		var frontS = neutron_core.createEmptySpArray(FRDISTRSIMPLELENGTH);
+		var frontDW = neutron_core.createEmptySpArray(FRDISTRDWLENGTH);
+		var times = [];
 		parser.parseFileByPart(path+filename,filetype,function(data,info){
-			let signals = neutron_core.packs_process_100mhz(data,20,16,true)
-			let timestamp = info.filestat.birthtime
+			let signals = neutron_core.packs_process_100mhz(data,20,16,true);
+			let timestamp = info.filestat.birthtime;
 			let filenameCRN = settings['save-folder']+chiptype+'/cr/CRN_'+timestamp.getDate()+(timestamp.getMonth()+1)+timestamp.getFullYear()+".dat"
 			let filenameCREL = settings['save-folder']+chiptype+'/cr/CREl_'+timestamp.getDate()+(timestamp.getMonth()+1)+timestamp.getFullYear()+".dat"
 			let filenameSPN = settings['save-folder']+chiptype+'/sp/SPN_'+timestamp.getDate()+(timestamp.getMonth()+1)+timestamp.getFullYear()+".dat"
@@ -131,10 +138,25 @@ var workout = {
 			let filenameFS = settings['save-folder']+chiptype+'/fr/FSIMPLE_'+timestamp.getDate()+(timestamp.getMonth()+1)+timestamp.getFullYear()+".dat"
 			let filenameFDW = settings['save-folder']+chiptype+'/fr/FDW_'+timestamp.getDate()+(timestamp.getMonth()+1)+timestamp.getFullYear()+".dat"
 			if(signals.length!=0){
-				let events = neutron_core.neutron_event(signals,0.1,0.6,chiptype,info.filestat.birthtime)
-				signals = null
-				let rates = neutron_core.createCountRate(events,true)
-				runNSP = neutron_core.createSpectrum(events,true,runNSP)
+				let events = neutron_core.neutron_event(signals,{
+					chip:chiptype,
+					charge_offset:110,
+					nthreshold:0.6,
+					ndwthreshold:110,
+					timestamp:info.filestat.birthtime
+				});
+				for (var i = 0; i < events.length; i++){
+					let event = events[i]
+					if (event.neutron && event.neutronDW && event.timestamp !== undefined) {
+						let str = event.timestamp.getDate() + "-" + (event.timestamp.getMonth()+1) + "-" + event.timestamp.getFullYear() + " " + event.timestamp.getHours() + ":" + event.timestamp.getMinutes() + "\t";
+						let mseconds = event.time[0]*24*60*60*1000 + event.time[1]*60*60*1000 + event.time[2]*60*1000 + event.time[3]*1000 + event.time[4] + event.time[5]/1000.0 + event.time[6]/1000.0/100.0;
+						str += mseconds + "\t" + event.time + "\n";
+						times.push(str);
+					}
+				}
+				signals = null;
+				let rates = neutron_core.createCountRate(events,true);
+				runNSP = neutron_core.createSpectrum(events,true,runNSP);
 				runELSP = neutron_core.createSpectrum(events,false,runELSP)
 				let fronts = neutron_core.createFrontsDistribution(events,frontS,frontDW)
 				frontS = fronts[0], frontDW = fronts[1]
@@ -145,6 +167,11 @@ var workout = {
 				}
 				mongo.writeDocsToDb(collection,events,function(){
 					if(info.finished){
+						times = times.reverse();
+						for(var i = 0; i < times.length; i++){
+							let str = times[i]
+							neutron_core.txt.appendFile(settings['save-folder'] + "NEUTRONS_" + timestamp.getDate() + (timestamp.getMonth()+1) + timestamp.getFullYear() + ".dat", str);
+						}
 						console.log('parsed')
 						fs.unlink(path+filename,function(err){
 							if(err){
@@ -155,6 +182,11 @@ var workout = {
 					}
 				})
 			} else if(info.finished){
+				times = times.reverse();
+				for(var i = 0; i < times.length; i++){
+					let str = times[i]
+					neutron_core.txt.appendFile(settings['save-folder'] + "NEUTRONS_" + timestamp.getDate() + (timestamp.getMonth()+1) + timestamp.getFullYear() + ".dat", str);
+				}
 				signals = null
 				console.log('parsed')
 				fs.unlink(path+filename,function(err){
