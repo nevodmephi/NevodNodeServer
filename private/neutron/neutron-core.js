@@ -111,7 +111,7 @@ module.exports = {
 
 			return signals;
 		} catch(e) {
-			console.log((new Date).toUTCString() + " URAN packs process 100mhz error: " + e);
+			console.error((new Date).toUTCString() + " URAN packs process 100mhz error: " + e);
 		}
 	},
 	/**
@@ -167,7 +167,7 @@ module.exports = {
 	 * @return {Array[][]}        спектры для 12 каналов
 	 */
 	createEmptySpArray:function(length) {
-		var sp = new Array(12).fill([]);
+		var sp = [[],[],[],[],[],[],[],[],[],[],[],[]];
 
 		for (var i = 0; i < length; i++) {
 			for (var j = 0; j < 12; j++) {
@@ -231,8 +231,12 @@ module.exports = {
 	createCountRate:function(data, devide) {
 		try {
 			if (devide) {
-				var nRates = new Array(12).fill(0); 
-				var elRates = new Array(12).fill(0);
+				var nRates = [0,0,0,0,0,0,0,0,0,0,0,0];
+				var nDWRates = [0,0,0,0,0,0,0,0,0,0,0,0];
+				var nSRates = [0,0,0,0,0,0,0,0,0,0,0,0];
+				var elRates = [0,0,0,0,0,0,0,0,0,0,0,0];
+				var elDWRates = [0,0,0,0,0,0,0,0,0,0,0,0];
+				var elSRates = [0,0,0,0,0,0,0,0,0,0,0,0];
 
 				for (var i = 0; i < data.length; i++) {
 					if (data[i].neutron && data[i].neutronDW) {
@@ -240,10 +244,20 @@ module.exports = {
 					} else {
 						elRates[data[i].channel]++;
 					}
+					if (data[i].neutron) {
+						nSRates[data[i].channel]++;
+					} else {
+						elSRates[data[i].channel]++;
+					}
+					if (data[i].neutronDW) {
+						nDWRates[data[i].channel]++;
+					} else {
+						elDWRates[data[i].channel]++;
+					}
 				}
-				return [nRates,elRates];
+				return [nRates,elRates,nDWRates,nSRates,elDWRates,elSRates];
 			} else {
-				var rates = new Array(12).fill(0);
+				var rates = [0,0,0,0,0,0,0,0,0,0,0,0]
 
 				for (var i = 0; i < data.length; i++){
 					rates[data[i].channel]++;

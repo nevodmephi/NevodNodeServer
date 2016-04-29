@@ -65,8 +65,8 @@ var workout = {
 		if(tasks.indexOf("parse")!=-1){
 			collection+="_parser"
 			parser.parseFileByPart(settings['bin-folder']+_filename,filetype,function(data,info){
-				if(data==null || data==undefined || data.length==0){
-					process.exit()
+				if (data === null || data === undefined || data.length == 0) {
+					process.exit();
 				}
 				donePercent = info.status
 				let signals = neutron_core.packs_process_100mhz(data,20,16,true)
@@ -122,13 +122,20 @@ var workout = {
 	},
 	parsingJob:function(path,filename,spLength){
 		var runNRates = [0,0,0,0,0,0,0,0,0,0,0,0];
+		var runNDWRates = [0,0,0,0,0,0,0,0,0,0,0,0];
+		var runNSRates = [0,0,0,0,0,0,0,0,0,0,0,0];
 		var runELRates = [0,0,0,0,0,0,0,0,0,0,0,0];
+		var runELDWRates = [0,0,0,0,0,0,0,0,0,0,0,0];
+		var runELSRates = [0,0,0,0,0,0,0,0,0,0,0,0];
 		var runNSP = neutron_core.createEmptySpArray(spLength);
 		var runELSP = neutron_core.createEmptySpArray(spLength);
 		var frontS = neutron_core.createEmptySpArray(FRDISTRSIMPLELENGTH);
 		var frontDW = neutron_core.createEmptySpArray(FRDISTRDWLENGTH);
 		var times = [];
 		parser.parseFileByPart(path+filename,filetype,function(data,info){
+			if (data === null || data === undefined || info === undefined) {
+				return;
+			}
 			let signals = neutron_core.packs_process_100mhz(data,20,16,true);
 			let timestamp = info.filestat.birthtime;
 			let filenameCRN = settings['save-folder']+chiptype+'/cr/CRN_'+timestamp.getDate()+(timestamp.getMonth()+1)+timestamp.getFullYear()+".dat"
@@ -150,7 +157,7 @@ var workout = {
 					if (event.neutron && event.neutronDW && event.timestamp !== undefined) {
 						let str = event.timestamp.getDate() + "-" + (event.timestamp.getMonth()+1) + "-" + event.timestamp.getFullYear() + " " + event.timestamp.getHours() + ":" + event.timestamp.getMinutes() + "\t";
 						let mseconds = event.time[0]*24*60*60*1000 + event.time[1]*60*60*1000 + event.time[2]*60*1000 + event.time[3]*1000 + event.time[4] + event.time[5]/1000.0 + event.time[6]/1000.0/100.0;
-						str += mseconds + "\t" + event.time + "\n";
+						str += mseconds + "\t" + event.channel + "\t" + event.time + "\n";
 						times.push(str);
 					}
 				}
@@ -162,15 +169,19 @@ var workout = {
 				frontS = fronts[0], frontDW = fronts[1]
 				fronts = null
 				for(let i in runNRates){
-					runNRates[i]+=rates[0][i]
-					runELRates[i]+=rates[1][i]
+					runNRates[i] += rates[0][i];
+					runNDWRates[i] += rates[2][i];
+					runNSRates[i] += rates[3][i];
+					runELRates[i] += rates[1][i];
+					runELDWRates[i] += rates[4][i];
+					runELSRates[i] += rates[5][i];
 				}
 				mongo.writeDocsToDb(collection,events,function(){
 					if(info.finished){
 						times = times.reverse();
 						for(var i = 0; i < times.length; i++){
 							let str = times[i]
-							neutron_core.txt.appendFile(settings['save-folder'] + "NEUTRONS_" + timestamp.getDate() + (timestamp.getMonth()+1) + timestamp.getFullYear() + ".dat", str);
+							neutron_core.txt.appendFile(settings['save-folder'] + chiptype + "/NEUTRONS_" + timestamp.getDate() + (timestamp.getMonth()+1) + timestamp.getFullYear() + ".dat", str);
 						}
 						console.log('parsed')
 						fs.unlink(path+filename,function(err){
@@ -178,6 +189,10 @@ var workout = {
 								console.error((new Date).toUTCString()+" error unlink file "+path+filename)
 							}
 						})
+						neutron_core.txt.writeCountRateToFile(settings['save-folder']+chiptype+'/cr/CRNDW_'+timestamp.getDate()+(timestamp.getMonth()+1)+timestamp.getFullYear()+".dat",runNDWRates,timestamp,false);
+						neutron_core.txt.writeCountRateToFile(settings['save-folder']+chiptype+'/cr/CRNS_'+timestamp.getDate()+(timestamp.getMonth()+1)+timestamp.getFullYear()+".dat",runNSRates,timestamp,false);
+						neutron_core.txt.writeCountRateToFile(settings['save-folder']+chiptype+'/cr/CRELDW_'+timestamp.getDate()+(timestamp.getMonth()+1)+timestamp.getFullYear()+".dat",runELDWRates,timestamp,false);
+						neutron_core.txt.writeCountRateToFile(settings['save-folder']+chiptype+'/cr/CRELS_'+timestamp.getDate()+(timestamp.getMonth()+1)+timestamp.getFullYear()+".dat",runELSRates,timestamp,false);
 						workout.updateStatistic(filenameCREL,filenameCRN,filenameSPN,filenameSPEL,timestamp,runNRates,runELRates,runELSP,runNSP,spLength,filenameFS,filenameFDW,frontS,frontDW)
 					}
 				})
@@ -185,7 +200,7 @@ var workout = {
 				times = times.reverse();
 				for(var i = 0; i < times.length; i++){
 					let str = times[i]
-					neutron_core.txt.appendFile(settings['save-folder'] + "NEUTRONS_" + timestamp.getDate() + (timestamp.getMonth()+1) + timestamp.getFullYear() + ".dat", str);
+					neutron_core.txt.appendFile(settings['save-folder'] + chiptype + "/NEUTRONS_" + timestamp.getDate() + (timestamp.getMonth()+1) + timestamp.getFullYear() + ".dat", str);
 				}
 				signals = null
 				console.log('parsed')
@@ -194,6 +209,10 @@ var workout = {
 						console.error((new Date).toUTCString()+" error unlink file "+path+filename)
 					}
 				})
+				neutron_core.txt.writeCountRateToFile(settings['save-folder']+chiptype+'/cr/CRNDW_'+timestamp.getDate()+(timestamp.getMonth()+1)+timestamp.getFullYear()+".dat",runNDWRates,timestamp,false);
+				neutron_core.txt.writeCountRateToFile(settings['save-folder']+chiptype+'/cr/CRNS_'+timestamp.getDate()+(timestamp.getMonth()+1)+timestamp.getFullYear()+".dat",runNSRates,timestamp,false);
+				neutron_core.txt.writeCountRateToFile(settings['save-folder']+chiptype+'/cr/CRELDW_'+timestamp.getDate()+(timestamp.getMonth()+1)+timestamp.getFullYear()+".dat",runELDWRates,timestamp,false);
+				neutron_core.txt.writeCountRateToFile(settings['save-folder']+chiptype+'/cr/CRELS_'+timestamp.getDate()+(timestamp.getMonth()+1)+timestamp.getFullYear()+".dat",runELSRates,timestamp,false);
 				workout.updateStatistic(filenameCREL,filenameCRN,filenameSPN,filenameSPEL,timestamp,runNRates,runELRates,runELSP,runNSP,spLength,filenameFS,filenameFDW,frontS,frontDW)
 			}
 		})
