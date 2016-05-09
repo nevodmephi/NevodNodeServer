@@ -234,10 +234,12 @@ var workout = {
 		})
 	},
 	updateSpectrums:function(spFamily,spType,spLength,date,spectrums,file){
-		let fquery = {"type":spFamily}
-		fquery[spType] = {$elemMatch:{"date":date}}
-		mongo.findDocsInDb(collectionStat,fquery,{},{},function(data){
-			if(data.length!=0){
+		let fquery = {"type" : spFamily};
+		fquery[spType] = {$elemMatch : {"date" : date}};
+		let projection = {};
+		projection[spType + ".$"] = 1;
+		mongo.findDocsInDb(collectionStat,fquery,{},projection,function(data){
+			if (data.length != 0) {
 				spectrums = neutron_core.addTwoSpectrums(spectrums,data[0][spType][0].sp)
 				let query = {"type":spFamily}
 				query[spType+".date"] = date
