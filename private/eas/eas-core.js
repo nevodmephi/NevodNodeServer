@@ -7,7 +7,7 @@
 
 const nevod = require('nevod');
 
-const NEUTRON_THRESHOLD = 10; // порог для нейтронов в хвосте
+const NEUTRON_THRESHOLD = 5; // порог для нейтронов в хвосте
 const CHARGE_THRESHOLD = 10; //порог для электромагнитной компоненты
 
 /**
@@ -25,6 +25,9 @@ const TAIL_BEGIN_SLICE = 500; //длина удаляемого участка �
 const ZERO_LINE_SLICE_BEGIN_NT = 20; //начало среза нулевой линии без хвоста
 const ZERO_LINE_SLICE_END_NT = 80; //конец среза нулевой линии без хвоста
 
+const CHARGE_SP_LENGTH = 1000; //длина спектра для электромагнитной компоненты
+const NEUTRONS_SP_DEVIDE_FACTOR = 500; //окно построения спектров для нейтронов
+
 module.exports.init = function(options) {
 	return new EasCore(options.saveFolder,options.binFolder);
 }
@@ -33,30 +36,43 @@ module.exports.init = function(options) {
  * класс для работы с данными с установки УРАН, задача ШАЛ
  */
 class EasCore {
-	constructor(saveFolder = "./" ,binFolder = "./"){
-		this.saveFolder = saveFolder;
-		this.binFolder = binFolder;
+	constructor(save_folder, bin_folder){
+		this.save_folder = save_folder;
+		this.bin_folder = bin_folder;
 		this.txtsys = nevod.getTextSysLib();
 		this.u_math = nevod.getUranMathLib();
+
+		this.charge_sp = this.u_math.createEmptySpArray(CHARGE_SP_LENGTH);
+		let nsp_length = Math.floor((20000 - TAIL_BEGIN_SLICE)/NEUTRONS_SP_DEVIDE_FACTOR);
+		this.neutrons_sp = this.u_math.createEmptySpArray(nsp_length);
 	}
 
 	get saveFolder() {
-		return this.saveFolder;
+		return this.save_folder;
 	}
 
 	get binFolder() {
-		return this.binFolder;
+		return this.bin_folder;
 	}
 
 	set saveFolder(newValue) {
-		this.saveFolder = newValue;
+		this.save_folder = newValue;
 	}
 
 	set binFolder(newValue) {
-		this.binFolder = newValue;
+		this.bin_folder = newValue;
 	}
 
-	savePrismaTypeTXTNoTail(path = this.saveFolder, name = "", data, isFirst = true) {
+	get chargeSp() {
+		return this.charge_sp;
+	}
+
+	get neutronsSp() {
+		return this.neutrons_sp;
+	}
+
+	savePrismaTypeTXTNoTail(name, data, isFirst, path) {
+		path = path === undefined ? this.save_folder : path;
 		let str = "";
 
 		if (data === null) {
@@ -89,7 +105,61 @@ class EasCore {
 		this.txtsys.appendFile(path + 'URANEASnt_' + name + '.dat', str);
 	}
 
-	savePrismaTypeTXT(path = this.saveFolder, name = "", data, isFirst = true) {
+	saveNeutronsInfo(name, data, isFirst, path) {
+		path = path === undefined ? this.save_folder : path;
+
+		if (data === null) {
+			console.error((new Date).toUTCString() + " EasCore saveNeutronsInfo error: data is null");
+			return;
+		}
+
+		let str = "";
+
+		if (isFirst) {
+			str = "N\tTime\tAmplN1\tPosN1\tAmplN2\tPosN2\tAmplN3\tPosN3\tAmplN4\tPosN4\tAmplN5\tPosN5\tAmplN6\tPosN6\tAmplN7\tPosN7\tAmplN8\tPosN8\tAmplN9\tPosN9\tAmplN10\tPosN10\tAmplN11\tPosN11\tAmplN12\tPosN12\n";
+		}
+
+		for (let i = 0; i < data.length; i++) {
+			let event = data[i];
+
+			let length = this.u_math.max_of_array(event.neutrons);
+
+			for (let j = 0; j < length; j++) {
+				str += event.number + "\t";
+
+				for (let j = 0; j < event.time.length; j++) { 
+					str += event.time[j] + "."; 
+				}
+
+				str = str.substring(0, str.length - 1);
+				str += "\t";
+
+
+				for (let k = 0; k < 12; k++) {
+					if (event.neutronsAmpl[k][j] !== undefined) {
+						str += event.neutronsAmpl[k][j];
+					} else {
+						str += "-";
+					}
+
+					if (event.neutronsPos[k][j] !== undefined) {
+						str += "\t" + event.neutronsPos[k][j] + "\t";
+					} else {
+						str += "\t-\t";
+					}
+				}
+				str += "\n";
+			}
+
+			str += "\n";
+		}
+
+		this.txtsys.appendFile(path + "URAN_NEUTRONS_INFO_" + name + ".dat", str);
+	}
+
+	savePrismaTypeTXT(name, data, isFirst, path) {
+		path = path === undefined ? this.save_folder : path;
+
 		if (data === null) {
 			console.error((new Date).toUTCString() + " EasCore savePrismaTypeTXT error: data is null");
 			return;
@@ -103,7 +173,7 @@ class EasCore {
 
 		for (let i = 0; i < data.length; i++) {
 			let event = data[i];
-			str += event.number+"\t";
+			str += event.number + "\t";
 
 			for (let j = 0; j < event.time.length; j++) { 
 				str += event.time[j] + "."; 
@@ -122,7 +192,7 @@ class EasCore {
 		this.txtsys.appendFile(path + 'URANEAS_' + name + '.dat', str);
 	}
 
-	uranEASEvent(data, filename = "", isSaveSigs = false, sigampl = 0, nsumSaving = 0, masterSaving = 8) {
+	uranEASEvent(data, filename, isSaveSigs, sigampl, nsumSaving, masterSaving) {
 		let events = [];
 		let nlvl = NEUTRON_THRESHOLD;
 		let ampllvl = CHARGE_THRESHOLD;
@@ -138,39 +208,40 @@ class EasCore {
 
 			let tails = data[i].tails;
 			let neutrons = [0,0,0,0,0,0,0,0,0,0,0,0];
+			let neutronsAmpl = [[],[],[],[],[],[],[],[],[],[],[],[]];
+			let neutronsPos = [[],[],[],[],[],[],[],[],[],[],[],[]];
 
 			for (let j = 0; j < tails.length; j++) {
 				let tail = tails[j].slice(TAIL_BEGIN_SLICE,tails[j].length);;
 				let xs = 0, xe = 0, isN = false;
+				let nampl = 0;
 
-				for (let k = 0; k < tail.length - 1; k++) {
-					// var ampl2behind = tail[k-2]
-					// var ampl1behind = tail[k-1]
+				for (let k = 0; k < tail.length; k++) {
 					let tampl = tail[k];
-					if(tampl>=nlvl && tail[k+1]>=4){
-						neutrons[j]++;
+
+					if (tampl >= nlvl && !isN) {
+						xs = k;
+						isN = true;
+						nampl = tail[k];
 					}
-				// var d1 = tampl - ampl1behind
-				// var d2 = ampl1behind - ampl2behind
-				// if(d1+d2>=nlvl){
-				// 	neutrons[j]++;
-				// }
-				// if(tampl>=nlvl && !isN) {
-				// 	xs = k;
-				// 	isN = true;
-				// }
-				// if(tampl<nlvl && isN) {
-				// 	xe = k;
-				// 	isN = false;
-				// 	var dt = xe - xs;
-				// 	if(dt>=2){
-				// 		neutrons[j]++;
-				// 	}
-				// }
+
+					if (tampl < nlvl && isN) {
+						xe = k;
+						isN = false;
+						let dt = xe - xs;
+						if (dt >= 2) {
+							neutrons[j]++;
+							this.neutrons_sp[j][Math.floor(k/NEUTRONS_SP_DEVIDE_FACTOR)]++;
+							neutronsAmpl[j].push(nampl);
+							neutronsPos[j].push(xs);
+						}
+					}
 				}
 			}
 
 			event.neutrons = neutrons;
+			event.neutronsAmpl = neutronsAmpl;
+			event.neutronsPos = neutronsPos;
 			event.zero_lines = data[i].z_lines;
 			let nsum = 0; //number of neutrons
 
@@ -182,7 +253,11 @@ class EasCore {
 			let msum = 0; //sum of ampls
 			let ndet = 0; //number of triggered detectors
 
-			for (let j = 0; j < data[i].maxs; j++) {
+			for (let j = 0; j < data[i].maxs.length; j++) {
+				if (this.charge_sp[0].length > data[i].maxs[j].toFixed(0)) {
+					this.charge_sp[j][data[i].maxs[j].toFixed(0)]++;
+				}
+
 				msum += data[i].maxs[j];
 
 				if (data[i].maxs[j] >= ampllvl) { 
@@ -198,9 +273,9 @@ class EasCore {
 			//сохранение сигналов в текстовый файл
 			if (isSaveSigs && msum >= sigampl && nsum >= nsumSaving) {
 				if (masterSaving > 7) {
-					this.txtsys.saveSignalsTXT(this.saveFolder + "SIG_" + filename.slice(0,filename.length-4) + ".dat", data[i], false);
+					this.txtsys.saveSignalsTXT(this.save_folder + "SIG_" + filename.slice(0,filename.length-4) + ".dat", data[i], false);
 				} else if (master == masterSaving) {
-					this.txtsys.saveSignalsTXT(this.saveFolder + "SIG_" + filename.slice(0,filename.length-4) + ".dat", data[i], false);
+					this.txtsys.saveSignalsTXT(this.save_folder + "SIG_" + filename.slice(0,filename.length-4) + ".dat", data[i], false);
 				}
 			}
 
@@ -210,7 +285,7 @@ class EasCore {
 		return events;
 	}
 
-	uranEASEventNoTail(data, filename = "", isSaveSigs = false, sigampl = 0, masterSaving = 8) {
+	uranEASEventNoTail(data, filename, isSaveSigs, sigampl, masterSaving) {
 		let events = [];
 		let ampllvl = CHARGE_THRESHOLD;
 
@@ -226,7 +301,11 @@ class EasCore {
 			let msum = 0 //sum of ampls
 			let ndet = 0; //number of triggered detectors
 
-			for (let j = 0; j < data[i].maxs; j++) {
+			for (let j = 0; j < data[i].maxs.length; j++) {
+				if (this.charge_sp[0].length > data[i].maxs[j].toFixed(0)) {
+					this.charge_sp[j][data[i].maxs[j].toFixed(0)]++;
+				}
+
 				msum += data[i].maxs[j];
 
 				if (data[i].maxs[j] >= ampllvl) { 
@@ -240,9 +319,9 @@ class EasCore {
 
 			if (isSaveSigs && msum >= sigampl) {
 				if (masterSaving > 7) {
-					this.txtsys.saveSignalsTXT(this.saveFolder + "SIG_" + filename.slice(0,filename.length-4) + ".dat", data[i], false);
+					this.txtsys.saveSignalsTXT(this.save_folder + "SIG_" + filename.slice(0,filename.length-4) + ".dat", data[i], false);
 				} else if (master == masterSaving) {
-					this.txtsys.saveSignalsTXT(this.saveFolder + "SIG_" + filename.slice(0,filename.length-4) + ".dat", data[i], false);
+					this.txtsys.saveSignalsTXT(this.save_folder + "SIG_" + filename.slice(0,filename.length-4) + ".dat", data[i], false);
 				}
 			}
 			events.push(event)
@@ -283,7 +362,7 @@ class EasCore {
 				tail = [];
 				zsigs.push(zsig);
 				ztails.push(ztail);
-				maxs.push(max-zero_lines[j]);
+				maxs.push(max - zero_lines[j]);
 			}
 
 			let signal = {
@@ -310,7 +389,11 @@ class EasCore {
 			for (let j = 0; j < pack.signal.length; j++) {
 				let sig = pack.signal[j];
 				let zline = sig.slice(ZERO_LINE_SLICE_BEGIN_NT,ZERO_LINE_SLICE_END_NT);
-				zero_lines.push(Math.round(this.u_math.avarage(zline)));
+
+				if (zero_lines.length < 12) {
+					zero_lines.push(Math.round(this.u_math.avarage(zline)));
+				}
+
 				let max = Math.round(this.u_math.max_of_array(sig) - zero_lines[j]);
 				let zsig = [];
 
