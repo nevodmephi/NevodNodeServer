@@ -4,11 +4,6 @@ const express = require("express");
 const nevod = require("nevod");
 var io = require("socket.io");
 
-process.on('uncaughtException', function (err) {
-	console.error((new Date).toUTCString() + ' uncaughtException:', err)
-	process.exit(1)
-})
-
 const task = (process.env.TASK || "neutron")
 if(task != "eas" && task != "neutron" && task != "all"){
 	console.log(task+" - is unkown task environment variable, use ONLY: 'eas' or 'neutron' or 'all' for TASK ")
@@ -60,10 +55,12 @@ io.sockets.on('connection', function (socket) {
 	})
 
 	socket.on('db-get',function(data){
-		kernel.mongo.findDocsInDb(data.collection,data.query,{},{},function(db_data){
-			socket.emit(data.res,db_data)
+		kernel.mongo.findDocsInDb(data.collection,data.query,data.sorting,data.projection,function(db_data){
+			var resp = {chip:data.chip,data:db_data};
+			socket.emit(data.res,resp)
 			db_data=null
 		})
 	})
+
 
 });

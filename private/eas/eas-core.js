@@ -1,6 +1,6 @@
 /**
  * @author Alexander Lakhonin (ixav1@icloud.com)
- * модуль для обработки данных посутпающих с установки УРАН, ШАЛ задача (платы 200 МГц)
+ * модуль для обработки данных посутпающих с установки УРАН, ШАЛ задача (платы БААК200)
  */
 
 'use strict'
@@ -28,6 +28,10 @@ const ZERO_LINE_SLICE_END_NT = 80; //конец среза нулевой лин
 const CHARGE_SP_LENGTH = 1000; //длина спектра для электромагнитной компоненты
 const NEUTRONS_SP_DEVIDE_FACTOR = 500; //окно построения спектров для нейтронов
 
+
+/**
+ * инициализация модуля
+ */
 module.exports.init = function(options) {
 	return new EasCore(options.saveFolder,options.binFolder);
 }
@@ -36,6 +40,9 @@ module.exports.init = function(options) {
  * класс для работы с данными с установки УРАН, задача ШАЛ
  */
 class EasCore {
+	/**
+	 * конструктор класса EasCore
+	 */
 	constructor(save_folder, bin_folder){
 		this.save_folder = save_folder;
 		this.bin_folder = bin_folder;
@@ -47,20 +54,15 @@ class EasCore {
 		this.neutrons_sp = this.u_math.createEmptySpArray(nsp_length);
 	}
 
+	/**
+	 * геттеры
+	 */
 	get saveFolder() {
 		return this.save_folder;
 	}
 
 	get binFolder() {
 		return this.bin_folder;
-	}
-
-	set saveFolder(newValue) {
-		this.save_folder = newValue;
-	}
-
-	set binFolder(newValue) {
-		this.bin_folder = newValue;
 	}
 
 	get chargeSp() {
@@ -71,6 +73,26 @@ class EasCore {
 		return this.neutrons_sp;
 	}
 
+	/**
+	 * сеттеры
+	 */
+	set saveFolder(newValue) {
+		this.save_folder = newValue;
+	}
+
+	set binFolder(newValue) {
+		this.bin_folder = newValue;
+	}
+
+	//основные алгоритмические функции для работы с данными
+	
+	/**
+	 * Сохраняет в текстовый файл, данные по работе установки, тип файла как в ПРИЗМЕ
+	 * @param  {String}  name    имя файла, куда сохраняются данные
+	 * @param  {Array}  data    массив обработанных данных, которые необходимо сохранить
+	 * @param  {Boolean} isFirst первое ли событие
+	 * @param  {String}  path    путь
+	 */
 	savePrismaTypeTXTNoTail(name, data, isFirst, path) {
 		path = path === undefined ? this.save_folder : path;
 		let str = "";

@@ -33,6 +33,10 @@ const NTHRESHOLD_DEFAULT = 0.5; // порог определения нейтр�
 const DW_SLICE_BEGIN = 0;
 const DW_SLICE_END = 1500;
 
+class NeutronCore {
+	
+}
+
 module.exports = {
 	u_math:nevod.getUranMathLib(),
 	txt:nevod.getTextSysLib(),
@@ -86,9 +90,9 @@ module.exports = {
 					let zline = this.u_math.avarage(zsig);
 					sig = isUsingSMA ? this.u_math.simple_moving_avarage(sig,sma_power) : sig;
 					let max = this.u_math.max_of_array(sig) - zline;
-					let mean = this.u_math.avarage(sig);
+					let mean = this.u_math.avarage(sig) - zline;
 
-					for (var j = 0; j < sig.length; j++) {
+					for (let j = 0; j < sig.length; j++) {
 						sig[j] -= zline;
 					}
 
@@ -99,7 +103,7 @@ module.exports = {
 							avg:mean,
 							zero_line:zline});
 				} else if (detectors >= 2) {
-					this.txt.appendFileSync(txtsavefolder + "2orMoreEvents.log", (new Date).toUTCString() + "\t" + pack.time + "\t" + detectors + "\n");
+					this.txt.appendFileSync(txtsavefolder + "/2orMoreEvents_" + (new Date).toUTCString() + ".log", (new Date).toUTCString() + "\t" + pack.time + "\t" + detectors + "\n");
 				}
 
 				if (isSaveSigs) {
@@ -148,6 +152,15 @@ module.exports = {
 				event.charge_ratio = event.charges[1] / event.charges[0];
 				event.neutron = event.charge_ratio > options.nthreshold ? true : false;
 				event.neutronDW = event.dw > options.ndwthreshold ? true : false;
+
+				let time = new Date();
+				if (event.neutron && event.neutronDW) { // Время каждого нейтрона сохраняется в текстовый файл
+					let str = "Детектор: " + event.channel + "\t" + "Время: " + event.time + "\n";
+					this.txt.appendFileSync(txtsavefolder + options.chip + "/neutron_time_" + time.getDate() + (time.getMonth() + 1) + time.getFullYear() + ".dat", str);
+				}
+
+				// запись нулевых линий
+				this.txt.appendFileSync(txtsavefolder + options.chip + "/zerolines/zeroline_" + event.channel + "_" + time.getDate() + (time.getMonth() + 1) + time.getFullYear() + ".dat", event.zero_line + "\n");
 
 				if (options.timestamp !== undefined) {
 					event.timestamp = options.timestamp;

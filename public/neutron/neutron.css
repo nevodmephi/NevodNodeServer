@@ -1,8 +1,8 @@
 *:focus {
-    outline: none !important;
-    outline: 0 !important;
-    outline-color: transparent !important;
-    outline-style: none !important;
+	outline: none !important;
+	outline: 0 !important;
+	outline-color: transparent !important;
+	outline-style: none !important;
 }
 
 .view-container {
@@ -21,13 +21,74 @@
   background-color: white;
   z-index: 100;
 }
-.oscilloscope{
+.online-container {
+	width: 100%;
+	height: 100%;
+}
+.cluster-name{
+	position: absolute;
+	margin-left: 30%;
+	background-color: lightgray;
+	z-index: 200;
+}
+.legend-view {
+	margin-left: auto;
+	width: 1400px;
+	height: 10%;
+	margin: 0 auto;
+}
+.lvi {
+	width: 100px;
+	height: 20px;
+	float: left;
+	margin-left: 15.4px;
+	text-align: center;
+}
+.oscView {
+	width: 50%;
+	height: 30%;
+	float: left;
+}
+/*.oscilloscope1{
+  grid-column-start: 2;
+  grid-column-end: 3;
+  grid-row-start: 1;
+  grid-row-end: 2;
+}
+.oscilloscope2{
+   grid-column-start: 2;
+   grid-column-end: 3;
+   grid-row-start: 2;
+   grid-row-end: 3;
+}
+.oscilloscope3{
   position: fixed;
   left: 0;
   top: 80px;
-  right: 0;
-  bottom: 74px;
+  width: 50%;
+  height: 30%;
 }
+.oscilloscope4{
+  position: fixed;
+  left: 0;
+  top: 80px;
+  width: 50%;
+  height: 30%;
+}
+.oscilloscope5{
+  position: fixed;
+  left: 0;
+  top: 80px;
+  width: 50%;
+  height: 30%;
+}
+.oscilloscope6{
+  position: fixed;
+  left: 0;
+  top: 80px;
+  width: 50%;
+  height: 30%;
+}*/
 .osc-navbar{
   height: 75px !important;
   visibility: hidden;;
